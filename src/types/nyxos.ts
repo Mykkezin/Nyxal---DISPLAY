@@ -3,7 +3,7 @@ export type NyxalState = 'ONLINE' | 'OUVINDO' | 'PROCESSANDO' | 'EXECUTANDO' | '
 export interface VpsInstance {
   id: string;
   name: string;
-  status: 'RUNNING' | 'SHUTOFF' | 'PAUSED' | 'PROVISIONING' | 'ERROR';
+  status: 'RUNNING' | 'SHUTOFF' | 'PAUSED' | 'PROVISIONING' | 'ERROR' | 'UNKNOWN';
   ip: string;
   os: string;
   vcpu: number;
@@ -16,21 +16,34 @@ export interface VpsInstance {
   uptime: string;
 }
 
+export interface VpsStatus {
+  sucesso: boolean;
+  estado: string;
+  backend?: string;
+  uri?: string;
+  operacional: boolean;
+  dominios?: number;
+  storage?: string;
+  virsh?: string;
+  host?: Record<string, unknown>;
+  motivo?: string;
+}
+
 export interface SystemService {
   name: string;
   description: string;
-  status: 'active' | 'inactive' | 'failed' | 'reloading';
+  status: string;
   subState: string;
-  pid?: number;
-  memoryUsageMb: number;
-  cpuUsagePct: number;
+  pid?: number | null;
+  memoryUsageMb?: number | null;
+  cpuUsagePct?: number | null;
   enabled: boolean;
 }
 
 export interface DeltaReportItem {
   id: string;
   timestamp: string;
-  category: 'LLC' | 'CONTAINMENT' | 'VPS' | 'RESIDENCE' | 'KNOWLEDGE';
+  category: 'LLC' | 'CONTAINMENT' | 'VPS' | 'RESIDENCE' | 'KNOWLEDGE' | 'SYSTEM';
   actor: 'Nyxal' | 'Operador' | 'Systemd';
   summary: string;
   details: string;
@@ -43,7 +56,7 @@ export interface DatasetItem {
   channel: 'USER_INPUT' | 'NYXAL_RESPONSE' | 'SYSTEM_TELEMETRY' | 'TOOL_RESULT';
   content: string;
   sanitized: boolean;
-  tokens: number;
+  tokens?: number;
 }
 
 export interface GatewayAction {
@@ -54,6 +67,42 @@ export interface GatewayAction {
   status: 'EXECUTED' | 'AUTHORIZED' | 'REJECTED';
   executedAt: string;
   auditorSignature: string;
+}
+
+export interface NyxosPublicStatus {
+  identidade?: {
+    nome?: string;
+    versao?: string;
+  };
+  presenca?: Record<string, unknown>;
+  presenca_maquina?: Record<string, unknown>;
+  estado?: {
+    modo?: string;
+    status?: string;
+  };
+  habitat?: Record<string, unknown>;
+  persistencia_operacional?: Record<string, unknown>;
+  delta?: {
+    quantidade?: number;
+    ultimo?: Record<string, unknown> | null;
+    [key: string]: unknown;
+  };
+  recursos_habitat?: Record<string, unknown>;
+  datasets_ae5?: {
+    qwen_registros?: number;
+    kernel_registros?: number;
+    treinamento_automatico?: boolean;
+  };
+  gateway_atuacao?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface NyxosSystemSnapshot {
+  sucesso: boolean;
+  estado: string;
+  modo?: string;
+  unidades: SystemService[];
+  motivo?: string;
 }
 
 export type ModuleWindowId =
