@@ -1,0 +1,6 @@
+{
+  "name": "NyxOS / Nyxal — Personal Operating System Shell",
+  "description": "Ambiente operacional pessoal centrado na inteligência Nyxal, com shell de desktop minimalista, Infinity quick-actions, gerenciador KVM/libvirt VPS e controle de sistema residente.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
