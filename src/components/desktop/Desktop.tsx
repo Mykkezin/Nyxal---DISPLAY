@@ -309,20 +309,10 @@ export const Desktop: React.FC = () => {
           </div>
         </div>
 
-        {/* Quiet Bottom Desktop Hardware & System Metrics */}
-        <div className="flex items-center gap-4 text-xs font-mono text-zinc-400/80 tabular-nums">
-          <span>CPU 12%</span>
-          <span className="text-zinc-600">·</span>
-          <span>RAM 38%</span>
-          <span className="text-zinc-600">·</span>
-          <span>GPU 4%</span>
-          <span className="text-zinc-600">·</span>
-          <span className="text-emerald-400 flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            NET ONLINE
-          </span>
-          <span className="text-zinc-600">·</span>
-          <span className="text-zinc-500 hidden sm:inline">KVM / virbr0</span>
+        {/* Statuso mínimo; métricas reais entram somente quando expostas pela API. */}
+        <div className="flex items-center gap-2 text-xs font-mono text-zinc-400/80">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          <span>NYXOS ONLINE</span>
         </div>
       </main>
 
