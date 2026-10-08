@@ -13,6 +13,7 @@ import { NyxalPresence } from '../nyxal/NyxalPresence';
 import { NyxalQuickSummon } from '../nyxal/NyxalQuickSummon';
 import { InfinityLauncher } from '../infinity/InfinityLauncher';
 import { WindowManager } from '../windows/WindowManager';
+import { nyxosApi } from '../../services/nyxosApi';
 
 // Modules
 import { VPSModule } from '../modules/VPSModule';
@@ -153,6 +154,26 @@ export const Desktop: React.FC = () => {
 
   const dismissNotification = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const refresh = async () => {
+      try {
+        const status = await nyxosApi.getPublicStatus();
+        if (!mounted) return;
+        const active = Boolean(status?.presenca?.ativa);
+        setNyxalState(active ? 'ONLINE' : 'ERRO');
+        const identidade = status?.identidade?.nome || 'Nyxal';
+        const ciclos = status?.presenca?.ciclos;
+        setNyxalSubtitle(ciclos != null ? `${identidade} online · ${ciclos} ciclos observados.` : `${identidade} online. Estado operacional sincronizado.`);
+      } catch {
+        if (mounted) { setNyxalState('ERRO'); setNyxalSubtitle('API Nyxal indisponível.'); }
+      }
+    };
+    refresh();
+    const timer = window.setInterval(refresh, 5000);
+    return () => { mounted = false; window.clearInterval(timer); };
   }, []);
 
   // Global Keyboard Shortcuts (Super+Space / Cmd+Space / Escape)

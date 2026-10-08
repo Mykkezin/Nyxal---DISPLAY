@@ -1,12 +1,3 @@
-/**
- * Cliente da API real do NyxOS.
- *
- * Em desenvolvimento, o Vite faz proxy de /api para 127.0.0.1:8010.
- * Em produção, o shell do NyxOS serve a aplicação no mesmo host da API.
- *
- * Não existe estado operacional simulado aqui: se a API não responder,
- * a operação falha explicitamente.
- */
 import {
   VpsInstance,
   SystemService,
@@ -19,11 +10,7 @@ import {
 
 const API_BASE_URL = '/api';
 
-type ApiErrorPayload = {
-  motivo?: string;
-  erro?: string;
-  estado?: string;
-};
+type ApiErrorPayload = { motivo?: string; erro?: string; estado?: string };
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -34,51 +21,57 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
       ...(init?.headers ?? {}),
     },
   });
-
   let payload: unknown = null;
-  try {
-    payload = await response.json();
-  } catch {
-    // Mantém payload nulo para respostas sem JSON.
-  }
-
+  try { payload = await response.json(); } catch {}
   if (!response.ok) {
     const errorPayload = (payload ?? {}) as ApiErrorPayload;
-    throw new Error(
-      errorPayload.motivo ||
-      errorPayload.erro ||
-      errorPayload.estado ||
-      `HTTP ${response.status}`
-    );
+    throw new Error(errorPayload.motivo || errorPayload.erro || errorPayload.estado || `HTTP ${response.status}`);
   }
-
   return payload as T;
 }
 
 function normalizarVps(item: any): VpsInstance {
   const info = item?.info ?? {};
   const estado = String(item?.estado ?? '').toLowerCase();
-
   return {
     id: String(item?.nome ?? info?.name ?? ''),
     name: String(item?.nome ?? info?.name ?? 'VPS'),
-    status:
-      estado === 'running' ? 'RUNNING' :
-      estado === 'paused' ? 'PAUSED' :
-      estado === 'shut off' || estado === 'shutoff' ? 'SHUTOFF' :
-      'ERROR',
-    ip: Array.isArray(item?.ips) && item.ips.length > 0 ? String(item.ips[0]).split('/')[0] : null,
-    os: null,
+    status: estado === 'running' ? 'RUNNING' : estado === 'paused' ? 'PAUSED' : estado === 'shut off' || estado === 'shutoff' ? 'SHUTOFF' : 'ERROR',
+    ip: Array.isArray(item?.ips) && item.ips.length ? String(item.ips[0]).split('/')[0] : null,
+    os: item?.os ? String(item.os) : null,
     vcpu: Number.parseInt(String(info?.cpu_s ?? info?.['cpu(s)'] ?? '0'), 10) || 0,
-    memoryMb: Math.round(
-      Number.parseInt(String(info?.used_memory ?? '0'), 10) / 1024
-    ) || 0,
-    diskGb: null,
+    memoryMb: Math.round(Number.parseInt(String(info?.used_memory ?? '0'), 10) / 1024) || 0,
+    diskGb: item?.disk_gb == null ? null : Number(item.disk_gb),
     autostart: String(info?.autostart ?? '').toLowerCase() === 'enable',
-    qemuGuestAgent: null,
+    qemuGuestAgent: item?.qemu_guest_agent == null ? null : Boolean(item.qemu_guest_agent),
     sshPort: 22,
-    createdAt: null,
-    uptime: null,
+    createdAt: item?.created_at ?? null,
+    uptime: item?.uptime ?? null,
+  };
+}
+
+function normalizarDelta(item: any): DeltaReportItem {
+  const tipo = String(item?.tipo ?? 'sistema').toUpperCase();
+  const category: DeltaReportItem['category'] =
+    tipo === 'VPS' ? 'VPS' :
+    tipo === 'CONTENIMENTO' || tipo === 'ARQUITETURA' ? 'CONTAINMENT' :
+    tipo === 'CONHECIMENTO' || tipo === 'MEMORIA' ? 'KNOWLEDGE' :
+    tipo === 'CICLO' || tipo === 'SISTEMA' || tipo === 'PROCESSO' ? 'LLC' :
+    'LLC';
+  return {
+    id: String(item?.delta_id ?? item?.id ?? 'delta'),
+    timestamp: String(item?.criado_em ?? item?.timestamp ?? ''),
+    category,
+    actor: 'Systemd',
+    summary: String(item?.causa ?? 'Evento Delta observado'),
+    details: JSON.stringify({
+      estado_anterior: item?.estado_anterior,
+      estado_novo: item?.estado_novo,
+      evidencias: item?.evidencias,
+      ciclo: item?.ciclo,
+      resultado: item?.resultado,
+    }, null, 2),
+    status: item?.integracao_executada ? 'PENDING' : 'AUDITED',
   };
 }
 
@@ -91,24 +84,37 @@ class NyxosApiService {
     return this.sessaoId ?? undefined;
   }
 
-  private saveSessionId(id: string | null | undefined): void {
+  private saveSessionId(id: string | null | undefined) {
     if (!id) return;
     this.sessaoId = id;
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('nyxal_sessao', id);
-    }
+    if (typeof window !== 'undefined') window.localStorage.setItem('nyxal_sessao', id);
   }
+
+  async getPublicStatus() { return requestJson<any>('/public/status'); }
+  async getNyxosContexto() { return requestJson<any>('/public/nyxos/contexto'); }
+  async getResidencia() { return requestJson<any>('/public/residencia'); }
+  async getDeltaReports(): Promise<DeltaReportItem[]> {
+    const raw = await requestJson<any>('/public/delta');
+    return Array.isArray(raw?.eventos) ? raw.eventos.map(normalizarDelta) : [];
+  }
+  async getDatasetContext() { return requestJson<any>('/public/dataset'); }
+  async getPresenca() { return requestJson<any>('/public/presenca'); }
+  async getRecursos() { return requestJson<any>('/public/recursos'); }
+  async getOperacional() { return requestJson<any>('/public/operacional'); }
+  async getGatewayContext() { return requestJson<any>('/public/gateway'); }
+  async getAe5() { return requestJson<any>('/public/ae5'); }
 
   async getVpsStatus() {
     const raw = await requestJson<any>('/vps/status');
     const host = raw?.host ?? {};
+    const instances = await this.getVpsInstances();
     return {
       hypervisor: raw?.backend ?? 'libvirt/KVM',
       connected: Boolean(raw?.operacional),
-      totalVms: Number(raw?.dominios ?? 0),
-      runningVms: undefined,
+      totalVms: Number(raw?.dominios ?? instances.length),
+      runningVms: instances.filter(v => v.status === 'RUNNING').length,
       hostThreads: Number(host?.['cpu(s)'] ?? host?.cpu_s ?? 0) || 0,
-      hostRamTotalGb: Number(host?.['memory_size'] ?? 0) / 1024 / 1024 || 0,
+      hostRamTotalGb: Number(host?.memory_size ?? 0) / 1024 / 1024 || 0,
       hostRamUsedGb: 0,
       imagePath: null,
       cloudImageReady: null,
@@ -117,165 +123,86 @@ class NyxosApiService {
 
   async getVpsInstances(): Promise<VpsInstance[]> {
     const raw = await requestJson<any>('/vps/instances');
-    if (!Array.isArray(raw?.instancias)) return [];
-    return raw.instancias.map(normalizarVps);
+    return Array.isArray(raw?.instancias) ? raw.instancias.map(normalizarVps) : [];
   }
 
-  async getVpsContexto() {
-    return requestJson<any>('/vps/contexto');
-  }
+  async getVpsContexto() { return requestJson<any>('/vps/contexto'); }
 
-  async vpsAction(
-    instanceId: string,
-    action: 'iniciar' | 'desligar' | 'reiniciar' | 'destruir' | 'autostart_toggle'
-  ) {
-    const mapped: Record<typeof action, string> = {
-      iniciar: 'start',
-      desligar: 'shutdown',
-      reiniciar: 'reboot',
-      destruir: 'destroy',
-      autostart_toggle: 'autostart',
-    };
-
+  async vpsAction(instanceId: string, action: 'iniciar'|'desligar'|'reiniciar'|'destruir'|'autostart_toggle') {
     const instances = await this.getVpsInstances();
-    const current = instances.find((item) => item.id === instanceId);
+    const current = instances.find(item => item.id === instanceId);
     const acao = action === 'autostart_toggle'
       ? (current?.autostart ? 'autostart_off' : 'autostart')
-      : mapped[action];
-
-    return requestJson<any>('/vps/action', {
-      method: 'POST',
-      body: JSON.stringify({
-        nome: instanceId,
-        acao,
-      }),
-    });
+      : ({ iniciar:'start', desligar:'shutdown', reiniciar:'reboot', destruir:'destroy' } as Record<string,string>)[action];
+    return requestJson<any>('/vps/action', { method:'POST', body:JSON.stringify({ nome:instanceId, acao }) });
   }
 
-  async provisionarVps(payload: {
-    name: string;
-    vcpu: number;
-    memoryMb: number;
-    diskGb: number;
-    user: string;
-    sshKey: string;
-    imagePath?: string;
-    autostart?: boolean;
-  }): Promise<VpsInstance> {
-    if (!payload.sshKey.trim()) {
-      throw new Error('A chave SSH pública é obrigatória.');
-    }
-
+  async provisionarVps(payload: {name:string; vcpu:number; memoryMb:number; diskGb:number; user:string; sshKey:string; imagePath?:string; autostart?:boolean}): Promise<VpsInstance> {
+    if (!payload.sshKey.trim()) throw new Error('A chave SSH pública é obrigatória.');
     const result = await requestJson<any>('/vps/provisionar', {
-      method: 'POST',
-      body: JSON.stringify({
-        nome: payload.name,
-        image_path:
-          payload.imagePath ||
-          '/home/nyxal/NyxOS/VPS/ubuntu-24.04-server-cloudimg-amd64.img',
-        username: payload.user,
-        ssh_public_key: payload.sshKey.trim(),
-        memory_mb: payload.memoryMb,
-        vcpus: payload.vcpu,
-        disk_gb: payload.diskGb,
-        autostart: payload.autostart ?? true,
+      method:'POST',
+      body:JSON.stringify({
+        nome:payload.name,
+        image_path:payload.imagePath || '/home/nyxal/NyxOS/VPS/ubuntu-24.04-server-cloudimg-amd64.img',
+        username:payload.user,
+        ssh_public_key:payload.sshKey.trim(),
+        memory_mb:payload.memoryMb,
+        vcpus:payload.vcpu,
+        disk_gb:payload.diskGb,
+        autostart:payload.autostart ?? true,
       }),
     });
-
-    return {
-      id: String(result?.nome ?? payload.name),
-      name: String(result?.nome ?? payload.name),
-      status: 'PROVISIONING',
-      ip: null,
-      os: 'Ubuntu 24.04',
-      vcpu: Number(result?.vcpus ?? payload.vcpu),
-      memoryMb: Number(result?.memory_mb ?? payload.memoryMb),
-      diskGb: Number(result?.disk_gb ?? payload.diskGb),
-      autostart: Boolean(result?.autostart ?? true),
-      qemuGuestAgent: null,
-      sshPort: 22,
-      createdAt: null,
-      uptime: null,
-    };
+    return { id:String(result?.nome ?? payload.name), name:String(result?.nome ?? payload.name), status:'PROVISIONING', ip:null, os:'Ubuntu 24.04', vcpu:Number(result?.vcpus ?? payload.vcpu), memoryMb:Number(result?.memory_mb ?? payload.memoryMb), diskGb:Number(result?.disk_gb ?? payload.diskGb), autostart:Boolean(result?.autostart ?? true), qemuGuestAgent:null, sshPort:22, createdAt:null, uptime:null };
   }
 
-  getSystemServices(): SystemService[] {
-    throw new Error('O backend ainda não expõe a listagem de serviços systemd pela API.');
-  }
-
-  async restartService(_name: string): Promise<boolean> {
-    throw new Error('O backend ainda não expõe restart de serviços systemd pela API.');
-  }
-
-  getDeltaReports(): DeltaReportItem[] {
-    throw new Error('O backend ainda não expõe o relatório Delta pela API.');
-  }
-
-  getDataset(): DatasetItem[] {
-    return [];
-  }
-
-  getGatewayActions(): GatewayAction[] {
-    throw new Error('O backend ainda não expõe o histórico do Gateway pela API.');
-  }
-
-  async converseWithNyxal(
-    query: string,
-    onStateChange?: (state: NyxalState) => void
-  ): Promise<NyxalMessage> {
+  async converseWithNyxal(query:string,onStateChange?:(state:NyxalState)=>void):Promise<NyxalMessage> {
     onStateChange?.('PROCESSANDO');
-
-    const raw = await requestJson<any>('/chat', {
-      method: 'POST',
-      body: JSON.stringify({
-        mensagem: query,
-        sessao: this.getSessionId(),
-      }),
-    });
-
-    this.saveSessionId(raw?.sessao);
-
-    onStateChange?.('CONCLUIDO');
-
-    return {
-      id: `msg-${Date.now()}`,
-      sender: 'nyxal',
-      text: String(raw?.resposta ?? raw?.erro ?? 'A Nyxal não retornou uma resposta.'),
-      timestamp: new Date().toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-      stateTrigger: 'CONCLUIDO',
-    };
+    try {
+      const raw = await requestJson<any>('/chat',{method:'POST',body:JSON.stringify({mensagem:query,sessao:this.getSessionId()})});
+      this.saveSessionId(raw?.sessao);
+      onStateChange?.(raw?.estado === 'execucao_concluida' ? 'EXECUTANDO' : 'CONCLUIDO');
+      return { id:`msg-${Date.now()}`, sender:'nyxal', text:String(raw?.resposta ?? raw?.erro ?? 'A Nyxal não retornou uma resposta.'), timestamp:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}), stateTrigger:'CONCLUIDO' };
+    } catch (error) {
+      onStateChange?.('ERRO');
+      throw error;
+    }
   }
 
-  async speak(texto: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/tts`, {
-      method: 'POST',
-      headers: {
-        Accept: 'audio/wav',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ texto }),
-    });
+  async speak(texto:string):Promise<void> {
+    const response=await fetch(`${API_BASE_URL}/tts`,{method:'POST',headers:{Accept:'audio/wav','Content-Type':'application/json'},body:JSON.stringify({texto})});
+    if(!response.ok) throw new Error(`TTS HTTP ${response.status}`);
+    const blob=await response.blob();
+    const url=URL.createObjectURL(blob);
+    const audio=new Audio(url);
+    try { await audio.play(); await new Promise<void>(resolve=>{audio.addEventListener('ended',()=>resolve(),{once:true});audio.addEventListener('error',()=>resolve(),{once:true});}); }
+    finally { URL.revokeObjectURL(url); }
+  }
 
-    if (!response.ok) {
-      throw new Error(`TTS HTTP ${response.status}`);
-    }
+  async transcribe(blob:Blob):Promise<string> {
+    const response=await fetch(`${API_BASE_URL}/stt`,{method:'POST',headers:{Accept:'application/json',...(blob.type?{'Content-Type':blob.type}:{})},body:blob});
+    let payload:any=null; try{payload=await response.json();}catch{}
+    if(!response.ok) throw new Error(payload?.motivo || payload?.erro || `STT HTTP ${response.status}`);
+    return String(payload?.texto ?? '');
+  }
 
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
+  async getSystemServices():Promise<SystemService[]> {
+    const raw=await this.getResidencia();
+    return Array.isArray(raw?.unidades) ? raw.unidades : [];
+  }
 
-    try {
-      await audio.play();
-      await new Promise<void>((resolve) => {
-        audio.addEventListener('ended', () => resolve(), { once: true });
-        audio.addEventListener('error', () => resolve(), { once: true });
-      });
-    } finally {
-      URL.revokeObjectURL(url);
-    }
+  async restartService():Promise<boolean> {
+    throw new Error('A residência é somente leitura pela API pública; reinicialização continua sob o supervisor systemd.');
+  }
+
+  async getGatewayActions():Promise<GatewayAction[]> {
+    const raw=await this.getGatewayContext();
+    const gateway=raw?.gateway ?? {};
+    return Array.isArray(gateway?.historico) ? gateway.historico : [];
+  }
+
+  async getDataset():Promise<DatasetItem[]> {
+    const raw=await this.getDatasetContext();
+    return [];
   }
 }
 
