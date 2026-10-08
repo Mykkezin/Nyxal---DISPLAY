@@ -288,9 +288,9 @@ class NyxosApiClient {
   }
 
   async getGatewayContext(): Promise<Record<string, unknown>> {
-    const status = this.statusCache || await this.getPublicStatus();
-    return status.gateway_atuacao && typeof status.gateway_atuacao === 'object'
-      ? status.gateway_atuacao
+    const context = await request<Record<string, unknown>>('/api/public/nyxos/contexto');
+    return context.gateway_atuacao && typeof context.gateway_atuacao === 'object'
+      ? context.gateway_atuacao as Record<string, unknown>
       : {};
   }
 
