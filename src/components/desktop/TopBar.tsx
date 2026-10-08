@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, Volume2, Sliders, Cloud, Battery } from 'lucide-react';
+import { Sliders } from 'lucide-react';
 import { NyxalState } from '../../types/nyxos';
 
 interface TopBarProps {
@@ -51,23 +51,14 @@ export const TopBar: React.FC<TopBarProps> = ({
       {/* Center: Quiet Contextual Status */}
       <div className="hidden md:flex items-center gap-2 text-[11px] font-mono text-zinc-500">
         <span className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
-        <span>KVM ATIVO</span>
-        <span className="text-zinc-700">·</span>
         <span>NYXAL {nyxalState}</span>
-        <span className="text-zinc-700">·</span>
-        <span>SYSTEMD TARGET READY</span>
       </div>
 
       {/* Right: Clock, Weather, Control Center Toggle */}
       <div className="flex items-center gap-4">
         {/* Weather & Clock */}
         <div className="flex items-center gap-2 font-mono text-zinc-300 tabular-nums text-xs">
-          <span className="text-zinc-400 flex items-center gap-1 text-[11px]">
-            <Cloud className="h-3 w-3 text-zinc-400" />
-            22°C
-          </span>
-          <span className="text-zinc-600">·</span>
-          <span className="font-medium text-white">{timeStr || '09:42'}</span>
+          <span className="font-medium text-white">{timeStr || '--:--'}</span>
         </div>
 
         {/* Quick Indicators & Control Center button */}
@@ -77,8 +68,6 @@ export const TopBar: React.FC<TopBarProps> = ({
             className="flex items-center gap-1.5 rounded px-1.5 py-1 text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
             title="Abrir Central de Controle"
           >
-            <Wifi className="h-3.5 w-3.5 text-zinc-300" />
-            <Volume2 className="h-3.5 w-3.5 text-zinc-300" />
             <Sliders className="h-3.5 w-3.5 text-violet-400" />
           </button>
         </div>
