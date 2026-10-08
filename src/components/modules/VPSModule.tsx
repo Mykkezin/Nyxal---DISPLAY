@@ -61,7 +61,7 @@ export const VPSModule: React.FC<Props> = ({ onNotify }) => {
       onNotify(
         action === 'destruir' ? 'warning' : 'success',
         'VPS atualizada',
-        \`\${instanceId}: \${action} confirmado pelo Nyxal Core.\`,
+        `${instanceId}: ${action} confirmado pelo Nyxal Core.`,
       );
     } catch (error) {
       onNotify('alert', 'Falha na operação', error instanceof Error ? error.message : 'Operação VPS recusada.');
@@ -92,7 +92,7 @@ export const VPSModule: React.FC<Props> = ({ onNotify }) => {
       setShowProvisionModal(false);
       await refreshData();
       setSelectedVm(created);
-      onNotify('success', 'VPS criada', \`\${created.name} foi criada pelo Nyxal Core.\`);
+      onNotify('success', 'VPS criada', `${created.name} foi criada pelo Nyxal Core.`);
     } catch (error) {
       onNotify('alert', 'Provisionamento falhou', error instanceof Error ? error.message : 'O Core recusou o provisionamento.');
     } finally {
@@ -108,7 +108,7 @@ export const VPSModule: React.FC<Props> = ({ onNotify }) => {
           <div className="text-xs">
             <span className="font-medium text-zinc-200">VPS · libvirt/KVM · Nyxal Core</span>
             <span className="mx-2 text-zinc-600">·</span>
-            <span className={\`font-mono \${statusInfo?.operacional ? 'text-emerald-400' : 'text-red-400'}\`}>
+            <span className={`font-mono ${statusInfo?.operacional ? 'text-emerald-400' : 'text-red-400'}`}>
               {statusInfo?.operacional ? 'ONLINE' : statusInfo ? 'INDISPONÍVEL' : 'CONSULTANDO'}
             </span>
             <span className="mx-2 text-zinc-600">·</span>
@@ -132,10 +132,10 @@ export const VPSModule: React.FC<Props> = ({ onNotify }) => {
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-white/5">
             {instances.map((vm) => (
-              <button key={vm.id} onClick={() => setSelectedVm(vm)} className={\`w-full text-left px-4 py-3 \${selectedVm?.id === vm.id ? 'bg-violet-950/25 border-l-2 border-violet-400' : 'hover:bg-white/[0.02]'}\`}>
+              <button key={vm.id} onClick={() => setSelectedVm(vm)} className={`w-full text-left px-4 py-3 ${selectedVm?.id === vm.id ? 'bg-violet-950/25 border-l-2 border-violet-400' : 'hover:bg-white/[0.02]'}`}>
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-xs font-medium truncate">{vm.name}</span>
-                  <span className={\`text-[10px] font-mono \${vm.status === 'RUNNING' ? 'text-emerald-400' : 'text-zinc-500'}\`}>{vm.status}</span>
+                  <span className={`text-[10px] font-mono ${vm.status === 'RUNNING' ? 'text-emerald-400' : 'text-zinc-500'}`}>{vm.status}</span>
                 </div>
                 <div className="mt-1 text-[11px] text-zinc-400 font-mono">{vm.ip || 'sem IP'} · {vm.vcpu || '?'} vCPU</div>
               </button>
@@ -171,7 +171,7 @@ export const VPSModule: React.FC<Props> = ({ onNotify }) => {
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="rounded border border-white/5 bg-black/30 p-4"><div className="text-xs text-zinc-400 flex items-center gap-2"><Cpu className="h-4 w-4 text-violet-400" /> vCPU</div><div className="mt-2 font-mono text-xl">{selectedVm.vcpu || '—'}</div></div>
-                <div className="rounded border border-white/5 bg-black/30 p-4"><div className="text-xs text-zinc-400 flex items-center gap-2"><HardDrive className="h-4 w-4 text-violet-400" /> Memória</div><div className="mt-2 font-mono text-xl">{selectedVm.memoryMb ? \`\${(selectedVm.memoryMb / 1024).toFixed(1)} GB\` : '—'}</div></div>
+                <div className="rounded border border-white/5 bg-black/30 p-4"><div className="text-xs text-zinc-400 flex items-center gap-2"><HardDrive className="h-4 w-4 text-violet-400" /> Memória</div><div className="mt-2 font-mono text-xl">{selectedVm.memoryMb ? `${(selectedVm.memoryMb / 1024).toFixed(1)} GB` : '—'}</div></div>
                 <div className="rounded border border-white/5 bg-black/30 p-4"><div className="text-xs text-zinc-400 flex items-center gap-2"><Network className="h-4 w-4 text-violet-400" /> IP</div><div className="mt-2 font-mono text-sm break-all">{selectedVm.ip || 'Não observado'}</div></div>
               </div>
 
