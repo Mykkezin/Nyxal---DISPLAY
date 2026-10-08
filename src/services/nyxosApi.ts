@@ -199,7 +199,7 @@ class NyxosApiService {
     };
   }
 
-  async getSystemServices(): Promise<SystemService[]> {
+  getSystemServices(): SystemService[] {
     throw new Error('O backend ainda não expõe a listagem de serviços systemd pela API.');
   }
 
@@ -207,16 +207,15 @@ class NyxosApiService {
     throw new Error('O backend ainda não expõe restart de serviços systemd pela API.');
   }
 
-  async getDeltaReports(): Promise<DeltaReportItem[]> {
+  getDeltaReports(): DeltaReportItem[] {
     throw new Error('O backend ainda não expõe o relatório Delta pela API.');
   }
 
-  async getDataset(): Promise<DatasetItem[]> {
-    const raw = await requestJson<any>('/ae5/datasets');
+  getDataset(): DatasetItem[] {
     return [];
   }
 
-  async getGatewayActions(): Promise<GatewayAction[]> {
+  getGatewayActions(): GatewayAction[] {
     throw new Error('O backend ainda não expõe o histórico do Gateway pela API.');
   }
 
