@@ -1,3 +1,10 @@
+type CoreResponse = {
+  sucesso?: boolean;
+  estado?: string;
+  motivo?: string;
+  [key: string]: unknown;
+};
+
 import {
   DeltaReportItem,
   DatasetItem,
@@ -122,14 +129,14 @@ class NyxosApiClient {
     return (result.instancias || []).map(mapVps);
   }
 
-  async getVpsContexto(): Promise<Record<string, unknown>> {
-    return assertSuccess(await request<Record<string, unknown>>('/api/vps/contexto'));
+  async getVpsContexto(): Promise<CoreResponse> {
+    return assertSuccess(await request<CoreResponse>('/api/vps/contexto'));
   }
 
   async vpsAction(
     instanceId: string,
     action: 'iniciar' | 'desligar' | 'reiniciar' | 'destruir',
-  ): Promise<Record<string, unknown>> {
+  ): Promise<CoreResponse> {
     const actions = {
       iniciar: 'start',
       desligar: 'shutdown',
@@ -138,7 +145,7 @@ class NyxosApiClient {
     } as const;
 
     return assertSuccess(
-      await request<Record<string, unknown>>('/api/vps/action', {
+      await request<CoreResponse>('/api/vps/action', {
         method: 'POST',
         body: JSON.stringify({ nome: instanceId, acao: actions[action] }),
       }),
@@ -156,7 +163,7 @@ class NyxosApiClient {
     autostart: boolean;
   }): Promise<VpsInstance> {
     assertSuccess(
-      await request<Record<string, unknown>>('/api/vps/provisionar', {
+      await request<CoreResponse>('/api/vps/provisionar', {
         method: 'POST',
         body: JSON.stringify({
           nome: payload.name,
@@ -288,7 +295,7 @@ class NyxosApiClient {
   }
 
   async getGatewayContext(): Promise<Record<string, unknown>> {
-    const context = await request<Record<string, unknown>>('/api/public/nyxos/contexto');
+    const context = await request<CoreResponse>('/api/public/nyxos/contexto');
     return context.gateway_atuacao && typeof context.gateway_atuacao === 'object'
       ? context.gateway_atuacao as Record<string, unknown>
       : {};
