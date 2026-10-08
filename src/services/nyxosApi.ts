@@ -128,10 +128,8 @@ class NyxosApiClient {
 
   async vpsAction(
     instanceId: string,
-    action: 'iniciar' | 'desligar' | 'reiniciar' | 'destruir' | 'autostart_toggle',
+    action: 'iniciar' | 'desligar' | 'reiniciar' | 'destruir',
   ): Promise<Record<string, unknown>> {
-    const current = await this.getVpsInstances();
-    const currentInstance = current.find((item) => item.id === instanceId);
     const actions = {
       iniciar: 'start',
       desligar: 'shutdown',
@@ -139,17 +137,10 @@ class NyxosApiClient {
       destruir: 'destroy',
     } as const;
 
-    let acao: string;
-    if (action === 'autostart_toggle') {
-      acao = currentInstance?.autostart ? 'autostart_off' : 'autostart';
-    } else {
-      acao = actions[action];
-    }
-
     return assertSuccess(
       await request<Record<string, unknown>>('/api/vps/action', {
         method: 'POST',
-        body: JSON.stringify({ nome: instanceId, acao }),
+        body: JSON.stringify({ nome: instanceId, acao: actions[action] }),
       }),
     );
   }
