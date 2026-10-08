@@ -73,12 +73,10 @@ export const NyxalQuickSummon: React.FC<NyxalQuickSummonProps> = ({
     const reply = await nyxosApi.converseWithNyxal(query, onStateChange);
     setMessages((prev) => [...prev, reply]);
 
-    // Optional TTS auto-play if supported
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      const u = new SpeechSynthesisUtterance(reply.text);
-      u.lang = 'pt-BR';
-      u.rate = 1.05;
-      window.speechSynthesis.speak(u);
+    try {
+      await nyxosApi.speak(reply.text);
+    } catch (error) {
+      onNotify('warning', 'TTS indisponível', error instanceof Error ? error.message : 'A síntese vocal não respondeu.');
     }
   };
 
@@ -124,14 +122,8 @@ export const NyxalQuickSummon: React.FC<NyxalQuickSummonProps> = ({
         setIsListening(false);
       }
     } else {
-      // Simulate quick voice capture
-      setIsListening(true);
-      onStateChange('OUVINDO');
-      setTimeout(() => {
-        setInput('Verificar status da VPS e serviços');
-        setIsListening(false);
-        onStateChange('ONLINE');
-      }, 1500);
+      onNotify('warning', 'Microfone indisponível', 'O navegador não disponibiliza SpeechRecognition nesta sessão.');
+      onStateChange('ONLINE');
     }
   };
 

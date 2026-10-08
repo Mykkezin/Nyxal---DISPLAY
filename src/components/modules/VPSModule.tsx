@@ -44,6 +44,7 @@ export const VPSModule: React.FC<VPSModuleProps> = ({ onNotify }) => {
   const [formRam, setFormRam] = useState(2048);
   const [formDisk, setFormDisk] = useState(20);
   const [formUser, setFormUser] = useState('nyxal');
+  const [formSshKey, setFormSshKey] = useState('');
 
   const refreshData = async () => {
     try {
@@ -100,6 +101,7 @@ export const VPSModule: React.FC<VPSModuleProps> = ({ onNotify }) => {
         memoryMb: formRam,
         diskGb: formDisk,
         user: formUser,
+        sshKey: formSshKey,
       });
       setShowProvisionModal(false);
       await refreshData();
@@ -424,6 +426,18 @@ export const VPSModule: React.FC<VPSModuleProps> = ({ onNotify }) => {
                     className="mt-1 w-full rounded border border-white/10 bg-black/40 px-3 py-1.5 font-mono text-xs text-white focus:border-violet-500 focus:outline-none"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-mono text-zinc-400">Chave SSH pública</label>
+                <textarea
+                  value={formSshKey}
+                  onChange={(e) => setFormSshKey(e.target.value)}
+                  className="mt-1 w-full min-h-16 rounded border border-white/10 bg-black/40 px-3 py-1.5 font-mono text-[10px] text-white focus:border-violet-500 focus:outline-none"
+                  placeholder="ssh-ed25519 AAAA... usuario@Nyxal"
+                  required
+                />
+                <p className="mt-1 text-[10px] text-zinc-600">Somente a chave pública. A chave privada nunca é enviada à API.</p>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-white/5">
