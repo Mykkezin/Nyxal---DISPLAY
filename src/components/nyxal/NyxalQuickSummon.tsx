@@ -45,7 +45,7 @@ export const NyxalQuickSummon: React.FC<NyxalQuickSummonProps> = ({
     if (!query) return;
 
     const userMsg: NyxalMessage = {
-      id: \`usr-\${Date.now()}\`,
+      id: `usr-${Date.now()}`,
       sender: 'user',
       text: query,
       timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
@@ -167,8 +167,8 @@ export const NyxalQuickSummon: React.FC<NyxalQuickSummonProps> = ({
             </div>
           )}
           {messages.map((message) => (
-            <div key={message.id} className={\`flex flex-col \${message.sender === 'nyxal' ? 'items-start' : 'items-end'}\`}>
-              <div className={\`max-w-[85%] rounded-lg px-4 py-2.5 text-xs leading-relaxed \${message.sender === 'nyxal' ? 'bg-black/40 border border-white/5 text-zinc-200' : 'bg-violet-600/90 text-white font-medium'}\`}>
+            <div key={message.id} className={`flex flex-col ${message.sender === 'nyxal' ? 'items-start' : 'items-end'}`}>
+              <div className={`max-w-[85%] rounded-lg px-4 py-2.5 text-xs leading-relaxed ${message.sender === 'nyxal' ? 'bg-black/40 border border-white/5 text-zinc-200' : 'bg-violet-600/90 text-white font-medium'}`}>
                 <p>{message.text}</p>
               </div>
               <span className="mt-1 text-[10px] font-mono text-zinc-600 px-1">{message.timestamp}</span>
@@ -199,7 +199,7 @@ export const NyxalQuickSummon: React.FC<NyxalQuickSummonProps> = ({
               if (isListening) recorderRef.current?.stop();
               else void startRecording();
             }}
-            className={\`p-2 rounded \${isListening ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'text-zinc-400 hover:text-white hover:bg-white/5'}\`}
+            className={`p-2 rounded ${isListening ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
             title={isListening ? 'Parar gravação' : 'Gravar áudio para o Nyxal Core'}
           >
             <Mic className="h-4 w-4" />
