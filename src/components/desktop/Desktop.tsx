@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  NyxalState,
-  ModuleWindowId,
-  WindowState,
-  NotificationToast,
+  NyxalState, ModuleWindowId, WindowState, NotificationToast, NyxosPublicStatus,
 } from '../../types/nyxos';
+import { nyxosApi } from '../../services/nyxosApi';
 import { TopBar } from './TopBar';
 import { Dock } from './Dock';
 import { ControlCenter } from './ControlCenter';
@@ -13,8 +11,6 @@ import { NyxalPresence } from '../nyxal/NyxalPresence';
 import { NyxalQuickSummon } from '../nyxal/NyxalQuickSummon';
 import { InfinityLauncher } from '../infinity/InfinityLauncher';
 import { WindowManager } from '../windows/WindowManager';
-
-// Modules
 import { VPSModule } from '../modules/VPSModule';
 import { RelatorioDeltaModule } from '../modules/RelatorioDeltaModule';
 import { PresencaAudioModule } from '../modules/PresencaAudioModule';
@@ -23,349 +19,137 @@ import { ResidenciaModule } from '../modules/ResidenciaModule';
 import { GatewayModule } from '../modules/GatewayModule';
 import { TerminalModule } from '../modules/TerminalModule';
 import { ArquivosModule } from '../modules/ArquivosModule';
-
-// Wallpaper generated asset
 import desktopBackdrop from '../../assets/images/nyxos_desktop_backdrop_1791463881307.jpg';
 
 const INITIAL_WINDOWS: WindowState[] = [
-  {
-    id: 'vps',
-    title: 'VPS · Hipervisor KVM / libvirt',
-    isOpen: false,
-    isMinimized: false,
-    isMaximized: false,
-    position: { x: 120, y: 70 },
-    size: { width: 920, height: 560 },
-    zIndex: 10,
-  },
-  {
-    id: 'delta',
-    title: 'Relatório Delta · Cadeia de Auditoria LLC',
-    isOpen: false,
-    isMinimized: false,
-    isMaximized: false,
-    position: { x: 180, y: 90 },
-    size: { width: 840, height: 520 },
-    zIndex: 10,
-  },
-  {
-    id: 'presenca',
-    title: 'Presença & Síntese Vocal (TTS/STT)',
-    isOpen: false,
-    isMinimized: false,
-    isMaximized: false,
-    position: { x: 220, y: 100 },
-    size: { width: 780, height: 500 },
-    zIndex: 10,
-  },
-  {
-    id: 'dataset',
-    title: 'Coleta Dual de Dataset',
-    isOpen: false,
-    isMinimized: false,
-    isMaximized: false,
-    position: { x: 160, y: 80 },
-    size: { width: 840, height: 520 },
-    zIndex: 10,
-  },
-  {
-    id: 'residencia',
-    title: 'Residência Gerenciada · Systemd Supervisor',
-    isOpen: false,
-    isMinimized: false,
-    isMaximized: false,
-    position: { x: 200, y: 90 },
-    size: { width: 820, height: 520 },
-    zIndex: 10,
-  },
-  {
-    id: 'gateway',
-    title: 'Gateway de Atuação · Fronteira de Contenção',
-    isOpen: false,
-    isMinimized: false,
-    isMaximized: false,
-    position: { x: 150, y: 85 },
-    size: { width: 800, height: 520 },
-    zIndex: 10,
-  },
-  {
-    id: 'terminal',
-    title: 'Terminal · Shell NyxOS',
-    isOpen: false,
-    isMinimized: false,
-    isMaximized: false,
-    position: { x: 140, y: 80 },
-    size: { width: 780, height: 480 },
-    zIndex: 10,
-  },
-  {
-    id: 'arquivos',
-    title: 'Storage & Discos QCOW2',
-    isOpen: false,
-    isMinimized: false,
-    isMaximized: false,
-    position: { x: 190, y: 95 },
-    size: { width: 780, height: 480 },
-    zIndex: 10,
-  },
+  { id: 'vps', title: 'VPS · Hipervisor KVM / libvirt', isOpen: false, isMinimized: false, isMaximized: false, position: { x: 120, y: 70 }, size: { width: 920, height: 560 }, zIndex: 10 },
+  { id: 'delta', title: 'Relatório Delta · Cadeia de Auditoria LLC', isOpen: false, isMinimized: false, isMaximized: false, position: { x: 180, y: 90 }, size: { width: 840, height: 520 }, zIndex: 10 },
+  { id: 'presenca', title: 'Presença & Síntese Vocal (TTS/STT)', isOpen: false, isMinimized: false, isMaximized: false, position: { x: 220, y: 100 }, size: { width: 780, height: 500 }, zIndex: 10 },
+  { id: 'dataset', title: 'Coleta Dual de Dataset', isOpen: false, isMinimized: false, isMaximized: false, position: { x: 160, y: 80 }, size: { width: 840, height: 520 }, zIndex: 10 },
+  { id: 'residencia', title: 'Residência · Systemd', isOpen: false, isMinimized: false, isMaximized: false, position: { x: 200, y: 90 }, size: { width: 820, height: 520 }, zIndex: 10 },
+  { id: 'gateway', title: 'Gateway de Atuação · Contenção', isOpen: false, isMinimized: false, isMaximized: false, position: { x: 150, y: 85 }, size: { width: 800, height: 520 }, zIndex: 10 },
+  { id: 'terminal', title: 'Terminal · Nyxal Core', isOpen: false, isMinimized: false, isMaximized: false, position: { x: 140, y: 80 }, size: { width: 780, height: 480 }, zIndex: 10 },
+  { id: 'arquivos', title: 'Recursos · Nyxal Core', isOpen: false, isMinimized: false, isMaximized: false, position: { x: 190, y: 95 }, size: { width: 780, height: 480 }, zIndex: 10 },
 ];
 
+function numberValue(value: unknown): number | null {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function resourcesFrom(status: NyxosPublicStatus | null): Record<string, any> {
+  return status?.habitat?.recursos && typeof status.habitat.recursos === 'object'
+    ? status.habitat.recursos as Record<string, any>
+    : {};
+}
+
 export const Desktop: React.FC = () => {
-  const [nyxalState, setNyxalState] = useState<NyxalState>('ONLINE');
-  const [nyxalSubtitle, setNyxalSubtitle] = useState('Sistema pronto. Ambiente operacional ativo.');
+  const [nyxalState, setNyxalState] = useState<NyxalState>('ERRO');
+  const [nyxalSubtitle, setNyxalSubtitle] = useState('Conectando ao Nyxal Core…');
+  const [coreStatus, setCoreStatus] = useState<NyxosPublicStatus | null>(null);
   const [windows, setWindows] = useState<WindowState[]>(INITIAL_WINDOWS);
   const [activeWindowId, setActiveWindowId] = useState<ModuleWindowId | null>(null);
   const [topZ, setTopZ] = useState(20);
-
-  // Overlays
   const [isQuickSummonOpen, setIsQuickSummonOpen] = useState(false);
   const [isInfinityOpen, setIsInfinityOpen] = useState(false);
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false);
+  const [toasts, setToasts] = useState<NotificationToast[]>([]);
 
-  // Toasts
-  const [toasts, setToasts] = useState<NotificationToast[]>([
-    {
-      id: 'init-toast',
-      type: 'info',
-      title: 'NyxOS Shell Inicializado',
-      message: 'Unidades de residência ativas no nyxos.target.',
-      timestamp: 'Agora',
-    },
-  ]);
-
-  const addNotification = useCallback(
-    (type: NotificationToast['type'], title: string, message: string) => {
-      const newToast: NotificationToast = {
-        id: `toast-${Date.now()}-${Math.random()}`,
-        type,
-        title,
-        message,
-        timestamp: 'Agora',
-      };
-      setToasts((prev) => [newToast, ...prev].slice(0, 4));
-
-      setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== newToast.id));
-      }, 4500);
-    },
-    []
-  );
-
-  const dismissNotification = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+  const refreshCore = useCallback(async () => {
+    try {
+      const status = await nyxosApi.getPublicStatus();
+      setCoreStatus(status);
+      setNyxalState('ONLINE');
+      setNyxalSubtitle(status.estado?.status ? String(status.estado.status) : 'Nyxal Core conectado.');
+    } catch (error) {
+      setCoreStatus(null);
+      setNyxalState('ERRO');
+      setNyxalSubtitle(error instanceof Error ? error.message : 'Nyxal Core indisponível.');
+    }
   }, []);
 
-  // Global Keyboard Shortcuts (Super+Space / Cmd+Space / Escape)
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Super / Cmd + Space -> Summon Nyxal
-      if ((e.metaKey || e.ctrlKey) && e.code === 'Space') {
-        e.preventDefault();
-        setIsQuickSummonOpen((prev) => !prev);
-      }
-      // Super / Cmd + I -> Toggle Infinity
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'i') {
-        e.preventDefault();
-        setIsInfinityOpen((prev) => !prev);
-      }
-    };
+    void refreshCore();
+    const id = window.setInterval(() => void refreshCore(), 5000);
+    return () => window.clearInterval(id);
+  }, [refreshCore]);
 
+  const addNotification = useCallback((type: NotificationToast['type'], title: string, message: string) => {
+    const toast: NotificationToast = { id: `${Date.now()}-${Math.random()}`, type, title, message, timestamp: 'Agora' };
+    setToasts((prev) => [toast, ...prev].slice(0, 4));
+    window.setTimeout(() => setToasts((prev) => prev.filter((item) => item.id !== toast.id)), 4500);
+  }, []);
+
+  const dismissNotification = useCallback((id: string) => setToasts((prev) => prev.filter((toast) => toast.id !== id)), []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.code === 'Space') { event.preventDefault(); setIsQuickSummonOpen((prev) => !prev); }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'i') { event.preventDefault(); setIsInfinityOpen((prev) => !prev); }
+    };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Window Management Actions
   const focusWindow = (id: ModuleWindowId) => {
-    setActiveWindowId(id);
-    const nextZ = topZ + 1;
-    setTopZ(nextZ);
-    setWindows((prev) =>
-      prev.map((w) => (w.id === id ? { ...w, zIndex: nextZ, isMinimized: false } : w))
-    );
+    const nextZ = topZ + 1; setTopZ(nextZ); setActiveWindowId(id);
+    setWindows((prev) => prev.map((item) => item.id === id ? { ...item, zIndex: nextZ, isMinimized: false } : item));
   };
-
   const openWindow = (id: ModuleWindowId) => {
-    const nextZ = topZ + 1;
-    setTopZ(nextZ);
-    setActiveWindowId(id);
-    setWindows((prev) =>
-      prev.map((w) =>
-        w.id === id
-          ? {
-              ...w,
-              isOpen: true,
-              isMinimized: false,
-              zIndex: nextZ,
-            }
-          : w
-      )
-    );
+    const nextZ = topZ + 1; setTopZ(nextZ); setActiveWindowId(id);
+    setWindows((prev) => prev.map((item) => item.id === id ? { ...item, isOpen: true, isMinimized: false, zIndex: nextZ } : item));
   };
-
-  const closeWindow = (id: ModuleWindowId) => {
-    setWindows((prev) =>
-      prev.map((w) => (w.id === id ? { ...w, isOpen: false } : w))
-    );
-    if (activeWindowId === id) {
-      setActiveWindowId(null);
-    }
-  };
-
-  const minimizeWindow = (id: ModuleWindowId) => {
-    setWindows((prev) =>
-      prev.map((w) => (w.id === id ? { ...w, isMinimized: true } : w))
-    );
-    if (activeWindowId === id) {
-      setActiveWindowId(null);
-    }
-  };
-
-  const toggleMaximizeWindow = (id: ModuleWindowId) => {
-    setWindows((prev) =>
-      prev.map((w) => (w.id === id ? { ...w, isMaximized: !w.isMaximized } : w))
-    );
-  };
-
-  const updateWindowPosition = (id: ModuleWindowId, pos: { x: number; y: number }) => {
-    setWindows((prev) =>
-      prev.map((w) => (w.id === id ? { ...w, position: pos } : w))
-    );
-  };
+  const closeWindow = (id: ModuleWindowId) => { setWindows((prev) => prev.map((item) => item.id === id ? { ...item, isOpen: false } : item)); if (activeWindowId === id) setActiveWindowId(null); };
+  const minimizeWindow = (id: ModuleWindowId) => { setWindows((prev) => prev.map((item) => item.id === id ? { ...item, isMinimized: true } : item)); if (activeWindowId === id) setActiveWindowId(null); };
+  const toggleMaximizeWindow = (id: ModuleWindowId) => setWindows((prev) => prev.map((item) => item.id === id ? { ...item, isMaximized: !item.isMaximized } : item));
+  const updateWindowPosition = (id: ModuleWindowId, position: { x: number; y: number }) => setWindows((prev) => prev.map((item) => item.id === id ? { ...item, position } : item));
 
   const renderModuleContent = (id: ModuleWindowId) => {
     switch (id) {
-      case 'vps':
-        return <VPSModule onNotify={addNotification} />;
-      case 'delta':
-        return <RelatorioDeltaModule />;
-      case 'presenca':
-        return (
-          <PresencaAudioModule
-            currentNyxalState={nyxalState}
-            onSetState={setNyxalState}
-            onNotify={addNotification}
-          />
-        );
-      case 'dataset':
-        return <ColetaDatasetModule onNotify={addNotification} />;
-      case 'residencia':
-        return <ResidenciaModule onNotify={addNotification} />;
-      case 'gateway':
-        return <GatewayModule onNotify={addNotification} />;
-      case 'terminal':
-        return <TerminalModule />;
-      case 'arquivos':
-        return <ArquivosModule />;
-      default:
-        return null;
+      case 'vps': return <VPSModule onNotify={addNotification} />;
+      case 'delta': return <RelatorioDeltaModule />;
+      case 'presenca': return <PresencaAudioModule currentNyxalState={nyxalState} onSetState={setNyxalState} onNotify={addNotification} />;
+      case 'dataset': return <ColetaDatasetModule onNotify={addNotification} />;
+      case 'residencia': return <ResidenciaModule onNotify={addNotification} />;
+      case 'gateway': return <GatewayModule onNotify={addNotification} />;
+      case 'terminal': return <TerminalModule />;
+      case 'arquivos': return <ArquivosModule />;
+      default: return null;
     }
   };
 
+  const resources = resourcesFrom(coreStatus);
+  const cpu = numberValue(resources.cpu?.uso_percentual);
+  const memory = numberValue(resources.memoria?.uso_percentual);
+  const storage = numberValue(resources.armazenamento?.uso_percentual);
+  const gpu = Array.isArray(resources.gpu) ? numberValue(resources.gpu[0]?.uso_percentual) : null;
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#07080b] font-sans text-zinc-100 select-none">
-      {/* Cinematic Wallpaper Backdrop with measured dark scrim */}
       <div className="absolute inset-0 pointer-events-none z-0">
-        <img
-          src={desktopBackdrop}
-          alt="NyxOS Ambient Wallpaper"
-          referrerPolicy="no-referrer"
-          className="h-full w-full object-cover opacity-60 mix-blend-screen"
-        />
-        {/* Deep vignette gradient to focus attention on Nyxal center */}
+        <img src={desktopBackdrop} alt="NyxOS Ambient Wallpaper" className="h-full w-full object-cover opacity-60 mix-blend-screen" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#07080b] via-transparent to-[#07080b]/90" />
         <div className="absolute inset-0 bg-radial from-transparent via-[#07080b]/50 to-[#07080b]/90" />
       </div>
-
-      {/* Top Bar (Header) */}
-      <TopBar
-        nyxalState={nyxalState}
-        onOpenControlCenter={() => setIsControlCenterOpen(true)}
-        onSummonNyxal={() => setIsQuickSummonOpen(true)}
-      />
-
-      {/* Main Desktop Canvas Area */}
+      <TopBar nyxalState={nyxalState} coreStatus={coreStatus} onOpenControlCenter={() => setIsControlCenterOpen(true)} onSummonNyxal={() => setIsQuickSummonOpen(true)} />
       <main className="relative z-10 flex h-full w-full flex-col items-center justify-between pt-16 pb-20 px-6">
-        {/* Subtle breathing room top spacer */}
         <div className="h-6" />
-
-        {/* Central Nyxal Core Intelligence Presence */}
         <div className="flex flex-col items-center my-auto">
-          <NyxalPresence
-            state={nyxalState}
-            subtitle={nyxalSubtitle}
-            onSummon={() => setIsQuickSummonOpen(true)}
-          />
-
-          {/* Infinity Launcher (Discreet floating center or summonable) */}
-          <div className="mt-8">
-            <InfinityLauncher
-              isOpen={isInfinityOpen}
-              onToggle={() => setIsInfinityOpen(!isInfinityOpen)}
-              onOpenModule={(id) => {
-                openWindow(id);
-                setIsInfinityOpen(false);
-              }}
-            />
-          </div>
+          <NyxalPresence state={nyxalState} subtitle={nyxalSubtitle} onSummon={() => setIsQuickSummonOpen(true)} />
+          <div className="mt-8"><InfinityLauncher isOpen={isInfinityOpen} onToggle={() => setIsInfinityOpen(!isInfinityOpen)} onOpenModule={(id) => { openWindow(id); setIsInfinityOpen(false); }} /></div>
         </div>
-
-        {/* Quiet Bottom Desktop Hardware & System Metrics */}
-        <div className="flex items-center gap-4 text-xs font-mono text-zinc-400/80 tabular-nums">
-          <span>CPU 12%</span>
-          <span className="text-zinc-600">·</span>
-          <span>RAM 38%</span>
-          <span className="text-zinc-600">·</span>
-          <span>GPU 4%</span>
-          <span className="text-zinc-600">·</span>
-          <span className="text-emerald-400 flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            NET ONLINE
-          </span>
-          <span className="text-zinc-600">·</span>
-          <span className="text-zinc-500 hidden sm:inline">KVM / virbr0</span>
+        <div className="flex flex-wrap justify-center items-center gap-4 text-xs font-mono text-zinc-400/80 tabular-nums">
+          <span>CPU {cpu == null ? '—' : `${cpu.toFixed(1)}%`}</span><span className="text-zinc-600">·</span>
+          <span>RAM {memory == null ? '—' : `${memory.toFixed(1)}%`}</span><span className="text-zinc-600">·</span>
+          <span>GPU {gpu == null ? '—' : `${gpu.toFixed(1)}%`}</span><span className="text-zinc-600">·</span>
+          <span>DISCO {storage == null ? '—' : `${storage.toFixed(1)}%`}</span><span className="text-zinc-600">·</span>
+          <span className={coreStatus ? 'text-emerald-400' : 'text-red-400'}>CORE {coreStatus ? 'ONLINE' : 'OFFLINE'}</span>
         </div>
       </main>
-
-      {/* Desktop Windows Layer */}
-      <WindowManager
-        windows={windows}
-        activeWindowId={activeWindowId}
-        onFocus={focusWindow}
-        onClose={closeWindow}
-        onMinimize={minimizeWindow}
-        onToggleMaximize={toggleMaximizeWindow}
-        onUpdatePosition={updateWindowPosition}
-        renderContent={renderModuleContent}
-      />
-
-      {/* Floating Bottom Dock */}
-      <Dock
-        onSummonNyxal={() => setIsQuickSummonOpen(true)}
-        onToggleInfinity={() => setIsInfinityOpen(!isInfinityOpen)}
-        onOpenModule={openWindow}
-        onToggleControlCenter={() => setIsControlCenterOpen(!isControlCenterOpen)}
-        windows={windows}
-        isInfinityOpen={isInfinityOpen}
-      />
-
-      {/* Nyxal Fast Summon HUD (Super+Space) */}
-      <NyxalQuickSummon
-        isOpen={isQuickSummonOpen}
-        onClose={() => setIsQuickSummonOpen(false)}
-        onOpenModule={openWindow}
-        onStateChange={setNyxalState}
-        onNotify={addNotification}
-      />
-
-      {/* Control Center Slide-over */}
-      <ControlCenter
-        isOpen={isControlCenterOpen}
-        onClose={() => setIsControlCenterOpen(false)}
-        onNotify={addNotification}
-        onOpenResidencia={() => openWindow('residencia')}
-      />
-
-      {/* Discreet Toast Notifications */}
+      <WindowManager windows={windows} activeWindowId={activeWindowId} onFocus={focusWindow} onClose={closeWindow} onMinimize={minimizeWindow} onToggleMaximize={toggleMaximizeWindow} onUpdatePosition={updateWindowPosition} renderContent={renderModuleContent} />
+      <Dock onSummonNyxal={() => setIsQuickSummonOpen(true)} onToggleInfinity={() => setIsInfinityOpen(!isInfinityOpen)} onOpenModule={openWindow} onToggleControlCenter={() => setIsControlCenterOpen(!isControlCenterOpen)} windows={windows} isInfinityOpen={isInfinityOpen} />
+      <NyxalQuickSummon isOpen={isQuickSummonOpen} onClose={() => setIsQuickSummonOpen(false)} onOpenModule={openWindow} onStateChange={setNyxalState} onNotify={addNotification} />
+      <ControlCenter isOpen={isControlCenterOpen} coreStatus={coreStatus} onClose={() => setIsControlCenterOpen(false)} onOpenResidencia={() => openWindow('residencia')} />
       <Notifications toasts={toasts} onDismiss={dismissNotification} />
     </div>
   );
