@@ -21,7 +21,7 @@ import {
 const API_BASE_URL = ((import.meta.env.VITE_NYXAL_API_URL as string | undefined) || '').trim().replace(/\/$/, '');
 
 function apiUrl(path: string): string {
-  return API_BASE_URL ? \`\${API_BASE_URL}\${path}\` : path;
+  return API_BASE_URL ? `${API_BASE_URL}${path}` : path;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -49,7 +49,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       'motivo' in payload &&
       typeof payload.motivo === 'string'
         ? payload.motivo
-        : \`Nyxal API HTTP \${response.status}\`;
+        : `Nyxal API HTTP ${response.status}`;
     throw new Error(reason);
   }
 
@@ -208,7 +208,7 @@ class NyxosApiClient {
     onStateChange?.(failed ? 'ERRO' : 'CONCLUIDO');
 
     return {
-      id: \`msg-\${Date.now()}\`,
+      id: `msg-${Date.now()}`,
       sender: 'nyxal',
       text: typeof result.resposta === 'string'
         ? result.resposta
@@ -228,7 +228,7 @@ class NyxosApiClient {
     });
 
     if (!response.ok) {
-      let reason = \`Nyxal TTS HTTP \${response.status}\`;
+      let reason = `Nyxal TTS HTTP ${response.status}`;
       try {
         const data = await response.json() as { motivo?: string };
         reason = data.motivo || reason;
@@ -263,7 +263,7 @@ class NyxosApiClient {
 
     const data = await response.json() as { texto?: string; motivo?: string };
     if (!response.ok) {
-      throw new Error(data.motivo || \`Nyxal STT HTTP \${response.status}\`);
+      throw new Error(data.motivo || `Nyxal STT HTTP ${response.status}`);
     }
     return data.texto || '';
   }
