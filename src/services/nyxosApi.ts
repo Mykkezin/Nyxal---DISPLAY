@@ -87,6 +87,7 @@ function mapVps(item: Record<string, unknown>): VpsInstance {
 
 class NyxosApiClient {
   private statusCache: NyxosPublicStatus | null = null;
+  private sessionId: string | undefined;
   private servicesCache: SystemService[] = [];
   private deltaCache: DeltaReportItem[] = [];
 
@@ -198,11 +199,14 @@ class NyxosApiClient {
       method: 'POST',
       body: JSON.stringify({
         mensagem: query,
-        ...(sessao ? { sessao } : {}),
+        sessao: sessao || this.sessionId,
       }),
     });
 
     const failed = result.sucesso === false;
+    if (typeof result.sessao === 'string' && result.sessao.trim()) {
+      this.sessionId = result.sessao;
+    }
     onStateChange?.(failed ? 'ERRO' : 'CONCLUIDO');
 
     return {
