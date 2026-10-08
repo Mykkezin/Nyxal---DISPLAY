@@ -4,16 +4,16 @@ export interface VpsInstance {
   id: string;
   name: string;
   status: 'RUNNING' | 'SHUTOFF' | 'PAUSED' | 'PROVISIONING' | 'ERROR';
-  ip: string;
-  os: string;
+  ip: string | null;
+  os: string | null;
   vcpu: number;
   memoryMb: number;
-  diskGb: number;
+  diskGb: number | null;
   autostart: boolean;
-  qemuGuestAgent: boolean;
-  sshPort: number;
-  createdAt: string;
-  uptime: string;
+  qemuGuestAgent: boolean | null;
+  sshPort: number | null;
+  createdAt: string | null;
+  uptime: string | null;
 }
 
 export interface SystemService {
