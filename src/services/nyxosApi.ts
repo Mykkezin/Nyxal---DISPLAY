@@ -112,6 +112,20 @@ class NyxosApiClient {
     return assertSuccess(await request<Record<string, unknown>>('/api/agent/contexto'));
   }
 
+  async getGmailStatus(): Promise<Record<string, unknown>> {
+    return assertSuccess(await request<Record<string, unknown>>('/api/integracoes/gmail/status'));
+  }
+
+  async getGmailMessages(query = 'is:unread newer_than:7d', limit = 10): Promise<Record<string, unknown>> {
+    const params = new URLSearchParams({ q: query, limit: String(limit) });
+    return assertSuccess(await request<Record<string, unknown>>(`/api/integracoes/gmail/mensagens?${params.toString()}`));
+  }
+
+  async getGmailMessage(id: string): Promise<Record<string, unknown>> {
+    const params = new URLSearchParams({ id });
+    return assertSuccess(await request<Record<string, unknown>>(`/api/integracoes/gmail/mensagem?${params.toString()}`));
+  }
+
   async getSystemServices(): Promise<SystemService[]> {
     const snapshot = assertSuccess(
       await request<NyxosSystemSnapshot>('/api/public/residencia'),
