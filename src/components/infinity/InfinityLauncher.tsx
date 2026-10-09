@@ -3,6 +3,7 @@ import {
   Server,
   Activity,
   Brain,
+  Palette,
   Sparkles,
   Database,
   Layers,
@@ -88,6 +89,13 @@ export const InfinityLauncher: React.FC<InfinityLauncherProps> = ({
       label: 'AGENTE E INTEGRAÇÕES',
       desc: 'Gemini, Hermes, Letta, Gmail e sistema',
       icon: Brain,
+    },
+    {
+      id: 'design',
+      num: '08',
+      label: 'NYXAL STUDIO',
+      desc: 'Criação e edição visual com Gemini',
+      icon: Palette,
     },
   ];
 
