@@ -20,6 +20,7 @@ export const NyxalQuickSummon: React.FC<NyxalQuickSummonProps> = ({
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<NyxalMessage[]>([]);
   const [isListening, setIsListening] = useState(false);
+  const [agentProvider, setAgentProvider] = useState('verificando');
   const inputRef = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -27,6 +28,21 @@ export const NyxalQuickSummon: React.FC<NyxalQuickSummonProps> = ({
 
   useEffect(() => {
     if (isOpen) setTimeout(() => inputRef.current?.focus(), 50);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let active = true;
+    void nyxosApi.getAgentStatus()
+      .then((status) => {
+        if (!active) return;
+        const provider = status.provedor_resolvido;
+        setAgentProvider(typeof provider === 'string' ? provider : 'local');
+      })
+      .catch(() => {
+        if (active) setAgentProvider('local/offline');
+      });
+    return () => { active = false; };
   }, [isOpen]);
 
   useEffect(() => {
@@ -152,7 +168,8 @@ export const NyxalQuickSummon: React.FC<NyxalQuickSummonProps> = ({
         <div className="flex items-center justify-between border-b border-white/5 px-5 py-3.5 bg-black/30">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-violet-400 animate-pulse" />
-            <span className="font-mono text-xs font-semibold tracking-wider text-zinc-300 uppercase">NYXAL CONVERSA · CORE</span>
+            <span className="font-mono text-xs font-semibold tracking-wider text-zinc-300 uppercase">NYXAL AGENT · CORE</span>
+            <span className="rounded border border-white/10 px-2 py-0.5 text-[9px] font-mono uppercase text-violet-300">{agentProvider}</span>
           </div>
           <button onClick={onClose} className="text-zinc-400 hover:text-white" title="Fechar">
             <X className="h-4 w-4" />
