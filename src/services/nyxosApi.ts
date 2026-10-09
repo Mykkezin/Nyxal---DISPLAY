@@ -91,6 +91,37 @@ class NyxosApiService {
   }
 
   async getPublicStatus() { return requestJson<any>('/public/status'); }
+
+  async getAgentStatus() { return requestJson<any>('/agent/status'); }
+  async getAgentContext() { return requestJson<any>('/agent/contexto'); }
+  async getGmailStatus() { return requestJson<any>('/integracoes/gmail/status'); }
+  async getGmailMessages(query = 'is:unread newer_than:7d', limit = 10) {
+    const params = new URLSearchParams({ q: query, limit: String(limit) });
+    return requestJson<any>('/integracoes/gmail/mensagens?' + params.toString());
+  }
+  async getGmailMessage(id: string) {
+    return requestJson<any>('/integracoes/gmail/mensagem?' + new URLSearchParams({ id }).toString());
+  }
+  async getGoogleWorkspaceStatus() { return requestJson<any>('/integracoes/google/status'); }
+  async getGoogleCalendarEvents(limit = 12, days = 14) {
+    return requestJson<any>('/integracoes/google/agenda?' + new URLSearchParams({ limit: String(limit), days: String(days) }).toString());
+  }
+  async getGoogleContacts(limit = 25) {
+    return requestJson<any>('/integracoes/google/contatos?' + new URLSearchParams({ limit: String(limit) }).toString());
+  }
+  async getGoogleDriveFiles(limit = 25) {
+    return requestJson<any>('/integracoes/google/drive?' + new URLSearchParams({ limit: String(limit) }).toString());
+  }
+  async generateOrEditImage(payload: { prompt: string; imageBase64?: string; mimeType?: string }) {
+    return requestJson<any>('/agent/image', {
+      method: 'POST',
+      body: JSON.stringify({
+        prompt: payload.prompt,
+        ...(payload.imageBase64 ? { imagem_base64: payload.imageBase64 } : {}),
+        ...(payload.mimeType ? { mime_type: payload.mimeType } : {}),
+      }),
+    });
+  }
   async getNyxosContexto() { return requestJson<any>('/public/nyxos/contexto'); }
   async getResidencia() { return requestJson<any>('/public/residencia'); }
   async getDeltaReports(): Promise<DeltaReportItem[]> {
@@ -158,7 +189,7 @@ class NyxosApiService {
   async converseWithNyxal(query:string,onStateChange?:(state:NyxalState)=>void):Promise<NyxalMessage> {
     onStateChange?.('PROCESSANDO');
     try {
-      const raw = await requestJson<any>('/chat',{method:'POST',body:JSON.stringify({mensagem:query,sessao:this.getSessionId()})});
+      const raw = await requestJson<any>('/agent/chat',{method:'POST',body:JSON.stringify({mensagem:query,sessao:this.getSessionId()})});
       this.saveSessionId(raw?.sessao);
       onStateChange?.(raw?.estado === 'execucao_concluida' ? 'EXECUTANDO' : 'CONCLUIDO');
       return { id:`msg-${Date.now()}`, sender:'nyxal', text:String(raw?.resposta ?? raw?.erro ?? 'A Nyxal não retornou uma resposta.'), timestamp:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}), stateTrigger:'CONCLUIDO' };
