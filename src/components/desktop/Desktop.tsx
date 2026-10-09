@@ -13,6 +13,7 @@ import { NyxalPresence } from '../nyxal/NyxalPresence';
 import { NyxalQuickSummon } from '../nyxal/NyxalQuickSummon';
 import { InfinityLauncher } from '../infinity/InfinityLauncher';
 import { WindowManager } from '../windows/WindowManager';
+import { SystemHud, type HostTelemetry } from './SystemHud';
 import { nyxosApi } from '../../services/nyxosApi';
 
 // Modules
@@ -27,6 +28,24 @@ import { ArquivosModule } from '../modules/ArquivosModule';
 
 // Wallpaper generated asset
 import desktopBackdrop from '../../assets/images/nyxos_desktop_backdrop_1791463881307.jpg';
+
+function safePercentage(value: unknown): number | null {
+  const parsed = typeof value === 'number'
+    ? value
+    : typeof value === 'string' && value.trim()
+      ? Number(value)
+      : Number.NaN;
+  return Number.isFinite(parsed) ? Math.min(100, Math.max(0, parsed)) : null;
+}
+
+function safeNonNegativeNumber(value: unknown): number | null {
+  const parsed = typeof value === 'number'
+    ? value
+    : typeof value === 'string' && value.trim()
+      ? Number(value)
+      : Number.NaN;
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
 
 const INITIAL_WINDOWS: WindowState[] = [
   {
@@ -117,6 +136,17 @@ export const Desktop: React.FC = () => {
   const [windows, setWindows] = useState<WindowState[]>(INITIAL_WINDOWS);
   const [activeWindowId, setActiveWindowId] = useState<ModuleWindowId | null>(null);
   const [topZ, setTopZ] = useState(20);
+  const [telemetry, setTelemetry] = useState<HostTelemetry>({
+    apiState: 'CONNECTING',
+    cpuPercent: null,
+    memoryPercent: null,
+    storagePercent: null,
+    gpuPercent: null,
+    hostSystem: null,
+    apiLatencyMs: null,
+    uptimeSeconds: null,
+    sampledAt: null,
+  });
 
   // Overlays
   const [isQuickSummonOpen, setIsQuickSummonOpen] = useState(false);
@@ -128,8 +158,8 @@ export const Desktop: React.FC = () => {
     {
       id: 'init-toast',
       type: 'info',
-      title: 'NyxOS Shell Inicializado',
-      message: 'Unidades de residência ativas no nyxos.target.',
+      title: 'NyxOS Display carregado',
+      message: 'Aguardando sincronização com o Core operacional.',
       timestamp: 'Agora',
     },
   ]);
@@ -159,16 +189,46 @@ export const Desktop: React.FC = () => {
   useEffect(() => {
     let mounted = true;
     const refresh = async () => {
+      const requestStartedAt = performance.now();
       try {
         const status = await nyxosApi.getPublicStatus();
         if (!mounted) return;
+
+        const recursos = status?.habitat?.recursos ?? {};
+        const host = status?.habitat?.host ?? {};
+        const primeiraGpu = Array.isArray(recursos?.gpu) ? recursos.gpu[0] : null;
+        setTelemetry({
+          apiState: 'ONLINE',
+          cpuPercent: safePercentage(recursos?.cpu?.uso_percentual),
+          memoryPercent: safePercentage(recursos?.memoria?.uso_percentual),
+          storagePercent: safePercentage(recursos?.armazenamento?.uso_percentual),
+          gpuPercent: primeiraGpu ? safePercentage(primeiraGpu?.uso_percentual) : null,
+          hostSystem: typeof host?.sistema === 'string' ? host.sistema : null,
+          apiLatencyMs: Math.max(0, Math.round(performance.now() - requestStartedAt)),
+          uptimeSeconds: safeNonNegativeNumber(recursos?.uptime_segundos),
+          sampledAt: new Date().toISOString(),
+        });
+
         const active = Boolean(status?.presenca?.ativa);
         setNyxalState(active ? 'ONLINE' : 'ERRO');
         const identidade = status?.identidade?.nome || 'Nyxal';
         const ciclos = status?.presenca?.ciclos;
         setNyxalSubtitle(ciclos != null ? `${identidade} online · ${ciclos} ciclos observados.` : `${identidade} online. Estado operacional sincronizado.`);
       } catch {
-        if (mounted) { setNyxalState('ERRO'); setNyxalSubtitle('API Nyxal indisponível.'); }
+        if (!mounted) return;
+        setTelemetry({
+          apiState: 'OFFLINE',
+          cpuPercent: null,
+          memoryPercent: null,
+          storagePercent: null,
+          gpuPercent: null,
+          hostSystem: null,
+          apiLatencyMs: null,
+          uptimeSeconds: null,
+          sampledAt: null,
+        });
+        setNyxalState('ERRO');
+        setNyxalSubtitle('API Nyxal indisponível.');
       }
     };
     refresh();
@@ -309,6 +369,9 @@ export const Desktop: React.FC = () => {
         {/* Subtle breathing room top spacer */}
         <div className="h-6" />
 
+        {/* JARVIS-style side panels, sourced only from real Core API telemetry. */}
+        <SystemHud telemetry={telemetry} nyxalState={nyxalState} />
+
         {/* Central Nyxal Core Intelligence Presence */}
         <div className="flex flex-col items-center my-auto">
           <NyxalPresence
@@ -331,9 +394,9 @@ export const Desktop: React.FC = () => {
         </div>
 
         {/* Statuso mínimo; métricas reais entram somente quando expostas pela API. */}
-        <div className="nyxos-system-status flex items-center gap-2 text-xs font-mono text-zinc-400/80">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          <span>NYXOS ONLINE</span>
+        <div className={`nyxos-system-status flex items-center gap-2 text-xs font-mono text-zinc-400/80 nyxos-system-status-${telemetry.apiState.toLowerCase()}`}>
+          <span className="h-1.5 w-1.5 rounded-full" />
+          <span>NYXOS CORE {telemetry.apiState}</span>
         </div>
       </main>
 
