@@ -89,6 +89,7 @@ export const IntegracoesModule: React.FC = () => {
   const providers = objectValue(agentStatus?.provedores);
   const whatsapp = objectValue(agentStatus?.whatsapp);
   const voice = objectValue(agentStatus?.voz);
+  const visual = objectValue(agentStatus?.criacao_visual);
   const observability = objectValue(context?.observabilidade);
   const host = objectValue(observability.host);
   const memory = objectValue(observability.memoria);
@@ -136,6 +137,8 @@ export const IntegracoesModule: React.FC = () => {
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] text-zinc-500">
           <span>Memória Letta: {objectValue(agentStatus?.memoria_letta).configurada === true ? 'configurada' : 'pendente'}</span>
+          <span>·</span>
+          <span>Imagem Gemini: {visual.configurado === true ? 'configurada' : 'pendente'}</span>
           <span>·</span>
           <span>Voz: {textValue(voice.voz_configurada, 'indisponível')}</span>
           <span>·</span>
