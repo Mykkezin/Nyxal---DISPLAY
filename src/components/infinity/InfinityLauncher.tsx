@@ -123,13 +123,13 @@ export const InfinityLauncher: React.FC<InfinityLauncherProps> = ({
       style={{
         transform: `translate(${position.x}px, ${position.y}px)`,
       }}
-      className="relative z-40 select-none transition-transform duration-75"
+      className="nyxos-infinity-launcher relative z-40 select-none transition-transform duration-75"
     >
       {/* Discreet Trigger button if collapsed */}
       {!isOpen ? (
         <button
           onClick={onToggle}
-          className="group flex items-center gap-2 rounded-full border border-white/10 bg-black/60 px-4 py-1.5 backdrop-blur-xl hover:border-violet-500/40 hover:bg-black/80 transition-all duration-300 shadow-lg cursor-pointer"
+          className="nyxos-infinity-trigger group flex items-center gap-2 rounded-full border border-white/10 bg-black/60 px-4 py-1.5 backdrop-blur-xl hover:border-violet-500/40 hover:bg-black/80 transition-all duration-300 shadow-lg cursor-pointer"
           title="Abrir Infinity (Ações Rápidas)"
         >
           <span className="text-[10px] text-zinc-500 group-hover:text-zinc-400 font-mono tracking-widest">
@@ -147,11 +147,11 @@ export const InfinityLauncher: React.FC<InfinityLauncherProps> = ({
         </button>
       ) : (
         /* Expanded Floating Infinity Capsule */
-        <div className="w-80 rounded-xl border border-white/10 bg-[#0d0e16]/95 backdrop-blur-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="nyxos-infinity-window w-80 rounded-xl border border-white/10 bg-[#0d0e16]/95 backdrop-blur-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
           {/* Draggable Title Header */}
           <div
             onMouseDown={handleMouseDown}
-            className="flex items-center justify-between border-b border-white/5 px-4 py-2.5 bg-black/40 cursor-grab active:cursor-grabbing"
+            className="nyxos-infinity-header flex items-center justify-between border-b border-white/5 px-4 py-2.5 bg-black/40 cursor-grab active:cursor-grabbing"
           >
             <div className="flex items-center gap-2">
               <span className="text-sm text-violet-400 font-sans">∞</span>
