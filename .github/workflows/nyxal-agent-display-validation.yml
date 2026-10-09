@@ -1,0 +1,31 @@
+name: NyxOS Agent Display Validation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feat/nyxal-agent-display-20261009]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-display:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: TypeScript validation
+        run: npm run lint
+      - name: Production build
+        env:
+          VITE_NYXAL_API_URL: ""
+        run: npm run build
