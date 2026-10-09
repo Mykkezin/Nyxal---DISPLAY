@@ -8,7 +8,10 @@ import {
   NyxalMessage,
 } from '../types/nyxos';
 
-const API_BASE_URL = '/api';
+const configuredApiRoot = (import.meta.env.VITE_NYXAL_API_URL as string | undefined)?.trim().replace(/\/+$/, '') ?? '';
+const API_BASE_URL = configuredApiRoot
+  ? (configuredApiRoot.endsWith('/api') ? configuredApiRoot : configuredApiRoot + '/api')
+  : '/api';
 
 type ApiErrorPayload = { motivo?: string; erro?: string; estado?: string };
 
