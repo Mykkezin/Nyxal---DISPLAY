@@ -133,6 +133,17 @@ export const IntegracoesModule: React.FC = () => {
   const memory = objectValue(observability.memoria);
   const storage = objectValue(observability.armazenamento_home);
   const processes = objectValue(observability.processos);
+  const cpu = objectValue(observability.cpu);
+  const gpu = objectValue(observability.gpu);
+  const temperatures = objectValue(observability.temperaturas);
+  const gpuRows = Array.isArray(gpu.dispositivos) ? gpu.dispositivos.filter((item: unknown): item is Data => Boolean(item) && typeof item === 'object') : [];
+  const temperatureRows = Array.isArray(temperatures.sensores) ? temperatures.sensores.filter((item: unknown): item is Data => Boolean(item) && typeof item === 'object') : [];
+  const loadAverage = Array.isArray(cpu.load_average_1_5_15)
+    ? cpu.load_average_1_5_15.map((value) => {
+        const n = Number(value);
+        return Number.isFinite(n) ? n.toFixed(2) : '—';
+      }).join(' / ')
+    : '—';
   const units = objectValue(observability.servicos_usuario);
   const unitRows = Array.isArray(units.unidades) ? units.unidades.filter((item: unknown): item is Data => Boolean(item) && typeof item === 'object') : [];
   const processRows = Array.isArray(processes.top_cpu) ? processes.top_cpu.filter((item: unknown): item is Data => Boolean(item) && typeof item === 'object') : [];
@@ -188,11 +199,13 @@ export const IntegracoesModule: React.FC = () => {
         <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300">
           <Activity className="h-4 w-4 text-violet-400" /> Observabilidade local · somente leitura
         </div>
-        <div className="mb-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <div className="mb-3 grid grid-cols-2 gap-2 lg:grid-cols-3">
           <div className="rounded border border-white/5 bg-white/[0.02] p-3"><div className="text-[10px] text-zinc-500">Host</div><div className="mt-1 truncate text-xs">{textValue(host.hostname)}</div><div className="mt-1 text-[10px] text-zinc-500">{textValue(host.sistema)} {textValue(host.release, '')}</div></div>
-          <div className="rounded border border-white/5 bg-white/[0.02] p-3"><div className="text-[10px] text-zinc-500">Memória RAM</div><div className="mt-1 text-lg font-mono">{percentValue(memory.uso_percentual)}</div></div>
+          <div className="rounded border border-white/5 bg-white/[0.02] p-3"><div className="text-[10px] text-zinc-500">RAM usada</div><div className="mt-1 text-lg font-mono">{percentValue(memory.uso_percentual)}</div></div>
           <div className="rounded border border-white/5 bg-white/[0.02] p-3"><div className="text-[10px] text-zinc-500">Armazenamento /home</div><div className="mt-1 text-lg font-mono">{percentValue(storage.uso_percentual)}</div></div>
+          <div className="rounded border border-white/5 bg-white/[0.02] p-3"><div className="text-[10px] text-zinc-500">Load average · 1/5/15m</div><div className="mt-1 text-sm font-mono">{loadAverage}</div></div>
           <div className="rounded border border-white/5 bg-white/[0.02] p-3"><div className="text-[10px] text-zinc-500">Processos observados</div><div className="mt-1 text-lg font-mono">{textValue(processes.total_observado, '—')}</div></div>
+          <div className="rounded border border-white/5 bg-white/[0.02] p-3"><div className="text-[10px] text-zinc-500">GPU</div><div className="mt-1 truncate text-xs">{textValue(gpuRows[0]?.nome, 'Indisponível')}</div><div className="mt-1 text-[10px] text-zinc-500">Uso {percentValue(gpuRows[0]?.uso_percentual)} · VRAM {percentValue(gpuRows[0]?.vram_uso_percentual)}</div></div>
         </div>
         <div className="mb-2 flex items-center gap-2 text-[11px] text-zinc-400"><Server className="h-3.5 w-3.5" /> Serviços da sessão do usuário</div>
         <div className="max-h-36 space-y-1 overflow-y-auto">
@@ -216,6 +229,23 @@ export const IntegracoesModule: React.FC = () => {
             </div>
           ))}
           {processRows.length === 0 && <div className="rounded bg-white/[0.02] p-3 text-[11px] text-zinc-500">A lista de processos não foi retornada.</div>}
+        </div>
+        <div className="mb-2 mt-4 flex items-center gap-2 text-[11px] text-zinc-400"><Activity className="h-3.5 w-3.5" /> GPU e sensores térmicos</div>
+        <div className="space-y-1">
+          {gpuRows.map((device, index) => (
+            <div key={textValue(device.nome, String(index))} className="flex flex-wrap items-center justify-between gap-2 rounded bg-white/[0.02] px-2.5 py-2 text-[10px]">
+              <span className="min-w-0 truncate font-mono text-zinc-300">{textValue(device.nome)}</span>
+              <span className="text-violet-300">Uso {percentValue(device.uso_percentual)} · VRAM {percentValue(device.vram_uso_percentual)} · {device.temperatura_celsius != null ? textValue(device.temperatura_celsius) + ' °C' : 'temp. —'}</span>
+            </div>
+          ))}
+          {gpuRows.length === 0 && <div className="rounded bg-white/[0.02] p-2.5 text-[10px] text-zinc-500">GPU indisponível nos drivers/sysfs consultados.</div>}
+          {temperatureRows.map((sensor, index) => (
+            <div key={textValue(sensor.sensor, String(index))} className="flex items-center justify-between gap-3 rounded bg-white/[0.02] px-2.5 py-1.5 text-[10px]">
+              <span className="truncate text-zinc-400">{textValue(sensor.sensor)}</span>
+              <span className="shrink-0 font-mono text-zinc-300">{textValue(sensor.celsius)} °C</span>
+            </div>
+          ))}
+          {temperatureRows.length === 0 && <div className="rounded bg-white/[0.02] p-2.5 text-[10px] text-zinc-500">Sensores de temperatura indisponíveis; verifique lm-sensors ou sysfs.</div>}
         </div>
       </section>
 
