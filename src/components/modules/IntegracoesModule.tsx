@@ -87,22 +87,22 @@ export const IntegracoesModule: React.FC = () => {
         if (driveResult.status === 'rejected') warnings.push('Drive: ' + (driveResult.reason instanceof Error ? driveResult.reason.message : 'consulta falhou'));
         setWorkspaceWarnings(warnings);
         if (mailResult.status === 'fulfilled') {
-          const rows = Array.isArray(mailResult.value.mensagens) ? mailResult.value.mensagens.filter((item): item is Data => Boolean(item) && typeof item === 'object') : [];
+          const rows = Array.isArray(mailResult.value.mensagens) ? mailResult.value.mensagens.filter((item: unknown): item is Data => Boolean(item) && typeof item === 'object') : [];
           setMessages(rows);
         } else {
           setMessages([]);
           setGmailError(mailResult.reason instanceof Error ? mailResult.reason.message : 'Não foi possível consultar o Gmail.');
         }
         if (calendarResult.status === 'fulfilled') {
-          const rows = Array.isArray(calendarResult.value.eventos) ? calendarResult.value.eventos.filter((item): item is Data => Boolean(item) && typeof item === 'object') : [];
+          const rows = Array.isArray(calendarResult.value.eventos) ? calendarResult.value.eventos.filter((item: unknown): item is Data => Boolean(item) && typeof item === 'object') : [];
           setCalendarEvents(rows);
         } else setCalendarEvents([]);
         if (contactsResult.status === 'fulfilled') {
-          const rows = Array.isArray(contactsResult.value.contatos) ? contactsResult.value.contatos.filter((item): item is Data => Boolean(item) && typeof item === 'object') : [];
+          const rows = Array.isArray(contactsResult.value.contatos) ? contactsResult.value.contatos.filter((item: unknown): item is Data => Boolean(item) && typeof item === 'object') : [];
           setContacts(rows);
         } else setContacts([]);
         if (driveResult.status === 'fulfilled') {
-          const rows = Array.isArray(driveResult.value.arquivos) ? driveResult.value.arquivos.filter((item): item is Data => Boolean(item) && typeof item === 'object') : [];
+          const rows = Array.isArray(driveResult.value.arquivos) ? driveResult.value.arquivos.filter((item: unknown): item is Data => Boolean(item) && typeof item === 'object') : [];
           setDriveFiles(rows);
         } else setDriveFiles([]);
       } else {
@@ -134,8 +134,8 @@ export const IntegracoesModule: React.FC = () => {
   const storage = objectValue(observability.armazenamento_home);
   const processes = objectValue(observability.processos);
   const units = objectValue(observability.servicos_usuario);
-  const unitRows = Array.isArray(units.unidades) ? units.unidades.filter((item): item is Data => Boolean(item) && typeof item === 'object') : [];
-  const processRows = Array.isArray(processes.top_cpu) ? processes.top_cpu.filter((item): item is Data => Boolean(item) && typeof item === 'object') : [];
+  const unitRows = Array.isArray(units.unidades) ? units.unidades.filter((item: unknown): item is Data => Boolean(item) && typeof item === 'object') : [];
+  const processRows = Array.isArray(processes.top_cpu) ? processes.top_cpu.filter((item: unknown): item is Data => Boolean(item) && typeof item === 'object') : [];
   const agentProvider = textValue(agentStatus?.provedor_resolvido, 'desconhecido');
   const gmailConfigured = gmailStatus?.estado === 'configurado';
 
