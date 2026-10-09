@@ -105,6 +105,17 @@ class NyxosApiService {
   async getGmailMessage(id: string) {
     return requestJson<any>('/integracoes/gmail/mensagem?' + new URLSearchParams({ id }).toString());
   }
+
+  async getGoogleWorkspaceStatus() { return requestJson<any>('/integracoes/google/status'); }
+  async getGoogleCalendarEvents(limit = 12, days = 14) {
+    return requestJson<any>('/integracoes/google/agenda?' + new URLSearchParams({ limit: String(limit), days: String(days) }).toString());
+  }
+  async getGoogleContacts(limit = 25) {
+    return requestJson<any>('/integracoes/google/contatos?' + new URLSearchParams({ limit: String(limit) }).toString());
+  }
+  async getGoogleDriveFiles(limit = 25) {
+    return requestJson<any>('/integracoes/google/drive?' + new URLSearchParams({ limit: String(limit) }).toString());
+  }
   async generateOrEditImage(payload: { prompt: string; imageBase64?: string; mimeType?: string }) {
     return requestJson<any>('/agent/image', {
       method: 'POST',
