@@ -161,6 +161,18 @@ export const IntegracoesModule: React.FC = () => {
           {unitRows.length === 0 && <div className="rounded bg-white/[0.02] p-3 text-[11px] text-zinc-500">Serviços não observados. Atualize para tentar novamente.</div>}
         </div>
         <div className="mt-2 flex items-center gap-2 text-[10px] text-zinc-600"><ShieldCheck className="h-3 w-3" /> O módulo não executa comandos nem altera serviços.</div>
+
+        <div className="mb-2 mt-4 flex items-center gap-2 text-[11px] text-zinc-400"><Activity className="h-3.5 w-3.5" /> Processos por CPU</div>
+        <div className="max-h-36 space-y-1 overflow-y-auto">
+          {processRows.slice(0, 10).map((process, index) => (
+            <div key={textValue(process.pid, String(index))} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded bg-white/[0.02] px-2.5 py-1.5 text-[10px]">
+              <span className="truncate font-mono text-zinc-300">{textValue(process.nome)}</span>
+              <span className="font-mono text-violet-300">CPU {percentValue(process.cpu_percentual)}</span>
+              <span className="font-mono text-zinc-500">RAM {percentValue(process.memoria_percentual)}</span>
+            </div>
+          ))}
+          {processRows.length === 0 && <div className="rounded bg-white/[0.02] p-3 text-[11px] text-zinc-500">A lista de processos não foi retornada.</div>}
+        </div>
       </section>
 
       <section className="rounded-lg border border-white/10 bg-black/20 p-4">
