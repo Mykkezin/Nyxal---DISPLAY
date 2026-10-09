@@ -19,6 +19,7 @@ import { ResidenciaModule } from '../modules/ResidenciaModule';
 import { GatewayModule } from '../modules/GatewayModule';
 import { TerminalModule } from '../modules/TerminalModule';
 import { ArquivosModule } from '../modules/ArquivosModule';
+import { IntegracoesModule } from '../modules/IntegracoesModule';
 import desktopBackdrop from '../../assets/images/nyxos_desktop_backdrop_1791463881307.jpg';
 
 const INITIAL_WINDOWS: WindowState[] = [
@@ -30,6 +31,7 @@ const INITIAL_WINDOWS: WindowState[] = [
   { id: 'gateway', title: 'Gateway de Atuação · Contenção', isOpen: false, isMinimized: false, isMaximized: false, position: { x: 150, y: 85 }, size: { width: 800, height: 520 }, zIndex: 10 },
   { id: 'terminal', title: 'Terminal · Nyxal Core', isOpen: false, isMinimized: false, isMaximized: false, position: { x: 140, y: 80 }, size: { width: 780, height: 480 }, zIndex: 10 },
   { id: 'arquivos', title: 'Recursos · Nyxal Core', isOpen: false, isMinimized: false, isMaximized: false, position: { x: 190, y: 95 }, size: { width: 780, height: 480 }, zIndex: 10 },
+  { id: 'integracoes', title: 'Agente e Integrações · Nyxal', isOpen: false, isMinimized: false, isMaximized: false, position: { x: 90, y: 55 }, size: { width: 980, height: 640 }, zIndex: 10 },
 ];
 
 function numberValue(value: unknown): number | null {
@@ -114,6 +116,7 @@ export const Desktop: React.FC = () => {
       case 'gateway': return <GatewayModule onNotify={addNotification} />;
       case 'terminal': return <TerminalModule />;
       case 'arquivos': return <ArquivosModule />;
+      case 'integracoes': return <IntegracoesModule />;
       default: return null;
     }
   };
