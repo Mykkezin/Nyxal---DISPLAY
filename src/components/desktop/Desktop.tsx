@@ -25,6 +25,8 @@ import { ResidenciaModule } from '../modules/ResidenciaModule';
 import { GatewayModule } from '../modules/GatewayModule';
 import { TerminalModule } from '../modules/TerminalModule';
 import { ArquivosModule } from '../modules/ArquivosModule';
+import { IntegracoesModule } from '../modules/IntegracoesModule';
+import { DesignModule } from '../modules/DesignModule';
 
 // Wallpaper generated asset
 import desktopBackdrop from '../../assets/images/nyxos_desktop_backdrop_1791463881307.jpg';
@@ -126,6 +128,26 @@ const INITIAL_WINDOWS: WindowState[] = [
     isMaximized: false,
     position: { x: 190, y: 95 },
     size: { width: 780, height: 480 },
+    zIndex: 10,
+  },
+  {
+    id: 'integracoes',
+    title: 'Agente e Integrações · Nyxal',
+    isOpen: false,
+    isMinimized: false,
+    isMaximized: false,
+    position: { x: 90, y: 55 },
+    size: { width: 980, height: 640 },
+    zIndex: 10,
+  },
+  {
+    id: 'design',
+    title: 'Nyxal Studio · Design e edição',
+    isOpen: false,
+    isMinimized: false,
+    isMaximized: false,
+    position: { x: 70, y: 50 },
+    size: { width: 1050, height: 680 },
     zIndex: 10,
   },
 ];
@@ -355,6 +377,10 @@ export const Desktop: React.FC = () => {
         return <TerminalModule />;
       case 'arquivos':
         return <ArquivosModule />;
+      case 'integracoes':
+        return <IntegracoesModule />;
+      case 'design':
+        return <DesignModule />;
       default:
         return null;
     }
