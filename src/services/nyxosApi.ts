@@ -104,6 +104,14 @@ class NyxosApiClient {
     return status;
   }
 
+  async getAgentStatus(): Promise<Record<string, unknown>> {
+    return assertSuccess(await request<Record<string, unknown>>('/api/agent/status'));
+  }
+
+  async getAgentContext(): Promise<Record<string, unknown>> {
+    return assertSuccess(await request<Record<string, unknown>>('/api/agent/contexto'));
+  }
+
   async getSystemServices(): Promise<SystemService[]> {
     const snapshot = assertSuccess(
       await request<NyxosSystemSnapshot>('/api/public/residencia'),
@@ -193,7 +201,7 @@ class NyxosApiClient {
   ): Promise<NyxalMessage> {
     onStateChange?.('PROCESSANDO');
 
-    const result = await request<Record<string, unknown>>('/api/chat', {
+    const result = await request<Record<string, unknown>>('/api/agent/chat', {
       method: 'POST',
       body: JSON.stringify({
         mensagem: query,
