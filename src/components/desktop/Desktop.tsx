@@ -209,11 +209,29 @@ export const Desktop: React.FC = () => {
           sampledAt: new Date().toISOString(),
         });
 
-        const active = Boolean(status?.presenca?.ativa);
-        setNyxalState(active ? 'ONLINE' : 'ERRO');
+        const active = status?.presenca?.ativa === true;
         const identidade = status?.identidade?.nome || 'Nyxal';
         const ciclos = status?.presenca?.ciclos;
-        setNyxalSubtitle(ciclos != null ? `${identidade} online · ${ciclos} ciclos observados.` : `${identidade} online. Estado operacional sincronizado.`);
+
+        setNyxalState(active ? 'ONLINE' : 'ERRO');
+        if (active) {
+          setNyxalSubtitle(
+            ciclos != null
+              ? `${identidade} online · ${ciclos} ciclos observados.`
+              : `${identidade} online. Estado operacional sincronizado.`
+          );
+        } else {
+          const estadoPresenca = typeof status?.presenca?.ativa === 'boolean'
+            ? 'presença residente reportada como inativa'
+            : 'estado da presença residente não informado';
+          setNyxalSubtitle(
+            ciclos != null
+              ? `${identidade}: API conectada; ${estadoPresenca} · ${ciclos} ciclos registrados.`
+              : `${identidade}: API conectada; ${estadoPresenca}.`
+          );
+        }
+        // Remove o aviso provisório assim que o Core responde com sucesso.
+        setToasts((prev) => prev.filter((toast) => toast.id !== 'init-toast'));
       } catch {
         if (!mounted) return;
         setTelemetry({
