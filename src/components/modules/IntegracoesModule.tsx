@@ -44,6 +44,7 @@ export const IntegracoesModule: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [gmailError, setGmailError] = useState('');
+  const [workspaceWarnings, setWorkspaceWarnings] = useState<string[]>([]);
 
   useEffect(() => { emailQueryRef.current = emailQuery; }, [emailQuery]);
 
@@ -51,6 +52,7 @@ export const IntegracoesModule: React.FC = () => {
     setLoading(true);
     setError('');
     setGmailError('');
+    setWorkspaceWarnings([]);
     const [agentResult, contextResult, gmailResult] = await Promise.allSettled([
       nyxosApi.getAgentStatus(),
       nyxosApi.getAgentContext(),
@@ -78,6 +80,12 @@ export const IntegracoesModule: React.FC = () => {
           nyxosApi.getGoogleContacts(25),
           nyxosApi.getGoogleDriveFiles(25),
         ]);
+        const warnings: string[] = [];
+        if (mailResult.status === 'rejected') warnings.push('Gmail: ' + (mailResult.reason instanceof Error ? mailResult.reason.message : 'consulta falhou'));
+        if (calendarResult.status === 'rejected') warnings.push('Agenda: ' + (calendarResult.reason instanceof Error ? calendarResult.reason.message : 'consulta falhou'));
+        if (contactsResult.status === 'rejected') warnings.push('Contatos: ' + (contactsResult.reason instanceof Error ? contactsResult.reason.message : 'consulta falhou'));
+        if (driveResult.status === 'rejected') warnings.push('Drive: ' + (driveResult.reason instanceof Error ? driveResult.reason.message : 'consulta falhou'));
+        setWorkspaceWarnings(warnings);
         if (mailResult.status === 'fulfilled') {
           const rows = Array.isArray(mailResult.value.mensagens) ? mailResult.value.mensagens.filter((item): item is Data => Boolean(item) && typeof item === 'object') : [];
           setMessages(rows);
@@ -218,6 +226,7 @@ export const IntegracoesModule: React.FC = () => {
         </div>
         <p className="mb-2 text-[11px] text-zinc-400">{gmailConfigured ? 'Acesso somente leitura. Nenhum e-mail será enviado, apagado ou alterado.' : textValue(gmailStatus?.proximo_passo, 'Autorize o Gmail seguindo docs/NYXAL_AGENT_STACK.md.')}</p>
         {gmailError && <div className="mb-2 rounded border border-amber-500/20 bg-amber-500/5 p-2 text-[10px] text-amber-300">{gmailError}</div>}
+        {workspaceWarnings.length > 0 && <div className="mb-2 space-y-1 rounded border border-amber-500/20 bg-amber-500/5 p-2 text-[10px] text-amber-300">{workspaceWarnings.map((warning) => <div key={warning}>{warning}</div>)}</div>}
         <div className="mb-2 flex gap-2">
           <input value={emailQuery} onChange={(event) => setEmailQuery(event.target.value)} aria-label="Consulta Gmail" className="min-w-0 flex-1 rounded border border-white/10 bg-black/30 px-3 py-2 text-[11px] text-zinc-200 outline-none focus:border-violet-500/40" placeholder="Pesquisa Gmail: is:unread newer_than:7d" />
           <button onClick={() => void refresh()} disabled={loading || !gmailConfigured} className="rounded border border-white/10 px-3 py-2 text-[10px] text-zinc-300 hover:bg-white/5 disabled:opacity-40">Buscar</button>
