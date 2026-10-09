@@ -9,10 +9,13 @@ function objectValue(value: unknown): Data {
 }
 
 function textValue(value: unknown, fallback = '—'): string {
-  return typeof value === 'string' && value.trim() ? value : fallback;
+  if (typeof value === 'string' && value.trim()) return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  return fallback;
 }
 
 function percentValue(value: unknown): string {
+  if (value === null || value === undefined || value === '') return '—';
   const number = Number(value);
   return Number.isFinite(number) ? number.toFixed(1) + '%' : '—';
 }
