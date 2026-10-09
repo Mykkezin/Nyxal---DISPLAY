@@ -32,7 +32,8 @@ export const VPSModule: React.FC<VPSModuleProps> = ({ onNotify }) => {
     hostThreads: number;
     hostRamTotalGb: number;
     hostRamUsedGb: number;
-    imagePath: string;
+    imagePath: string | null;
+    cloudImageReady: boolean | null;
   } | null>(null);
   const [selectedVm, setSelectedVm] = useState<VpsInstance | null>(null);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
@@ -189,11 +190,19 @@ export const VPSModule: React.FC<VPSModuleProps> = ({ onNotify }) => {
           {/* Cloud image indicator */}
           <div className="p-3 border-t border-white/5 bg-black/30 text-[11px] text-zinc-400">
             <div className="flex items-center gap-1.5 text-zinc-300">
-              <CheckCircle2 className="h-3.5 w-3.5 text-violet-400" />
-              <span>Ubuntu 24.04 Cloud Image</span>
+              {statusInfo?.cloudImageReady === true
+                ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                : <AlertCircle className="h-3.5 w-3.5 text-amber-400" />}
+              <span>
+                {statusInfo?.cloudImageReady === true
+                  ? 'Cloud Image disponível'
+                  : statusInfo?.cloudImageReady === false
+                    ? 'Cloud Image não encontrada'
+                    : 'Estado da Cloud Image desconhecido'}
+              </span>
             </div>
             <div className="mt-0.5 truncate font-mono text-[10px] text-zinc-500">
-              {statusInfo?.imagePath || '/home/nyxal/NyxOS/VPS/...img'}
+              {statusInfo?.imagePath || 'Caminho da imagem não informado'}
             </div>
           </div>
         </div>
