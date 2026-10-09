@@ -126,6 +126,21 @@ class NyxosApiClient {
     return assertSuccess(await request<CoreResponse>(`/api/integracoes/gmail/mensagem?${params.toString()}`));
   }
 
+  async generateOrEditImage(payload: {
+    prompt: string;
+    imageBase64?: string;
+    mimeType?: string;
+  }): Promise<Record<string, unknown>> {
+    return assertSuccess(await request<CoreResponse>('/api/agent/image', {
+      method: 'POST',
+      body: JSON.stringify({
+        prompt: payload.prompt,
+        ...(payload.imageBase64 ? { imagem_base64: payload.imageBase64 } : {}),
+        ...(payload.mimeType ? { mime_type: payload.mimeType } : {}),
+      }),
+    }));
+  }
+
   async getSystemServices(): Promise<SystemService[]> {
     const snapshot = assertSuccess(
       await request<NyxosSystemSnapshot>('/api/public/residencia'),
