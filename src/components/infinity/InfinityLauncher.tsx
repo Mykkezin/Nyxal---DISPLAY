@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   Server,
   Activity,
+  Brain,
+  Palette,
   Sparkles,
   Database,
   Layers,
@@ -80,6 +82,20 @@ export const InfinityLauncher: React.FC<InfinityLauncherProps> = ({
       label: 'GATEWAY DE ATUAÇÃO',
       desc: 'Fronteira restrita e contenção',
       icon: ShieldAlert,
+    },
+    {
+      id: 'integracoes',
+      num: '07',
+      label: 'AGENTE E INTEGRAÇÕES',
+      desc: 'Gemini, Hermes, Letta, Gmail e sistema',
+      icon: Brain,
+    },
+    {
+      id: 'design',
+      num: '08',
+      label: 'NYXAL STUDIO',
+      desc: 'Criação e edição visual com Gemini',
+      icon: Palette,
     },
   ];
 
