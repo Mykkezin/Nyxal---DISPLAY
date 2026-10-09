@@ -283,7 +283,7 @@ export const Desktop: React.FC = () => {
   };
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-[#07080b] font-sans text-zinc-100 select-none">
+    <div className="nyxos-shell relative h-screen w-screen overflow-hidden bg-[#07080b] font-sans text-zinc-100 select-none">
       {/* Cinematic Wallpaper Backdrop with measured dark scrim */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <img
@@ -305,7 +305,7 @@ export const Desktop: React.FC = () => {
       />
 
       {/* Main Desktop Canvas Area */}
-      <main className="relative z-10 flex h-full w-full flex-col items-center justify-between pt-16 pb-20 px-6">
+      <main className="nyxos-workspace relative z-10 flex h-full w-full flex-col items-center justify-between pt-16 pb-20 px-6">
         {/* Subtle breathing room top spacer */}
         <div className="h-6" />
 
@@ -331,7 +331,7 @@ export const Desktop: React.FC = () => {
         </div>
 
         {/* Statuso mínimo; métricas reais entram somente quando expostas pela API. */}
-        <div className="flex items-center gap-2 text-xs font-mono text-zinc-400/80">
+        <div className="nyxos-system-status flex items-center gap-2 text-xs font-mono text-zinc-400/80">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
           <span>NYXOS ONLINE</span>
         </div>
