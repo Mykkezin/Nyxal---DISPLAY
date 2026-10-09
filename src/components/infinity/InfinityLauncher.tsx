@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   Server,
   Activity,
+  Brain,
   Sparkles,
   Database,
   Layers,
@@ -80,6 +81,13 @@ export const InfinityLauncher: React.FC<InfinityLauncherProps> = ({
       label: 'GATEWAY DE ATUAÇÃO',
       desc: 'Fronteira restrita e contenção',
       icon: ShieldAlert,
+    },
+    {
+      id: 'integracoes',
+      num: '07',
+      label: 'AGENTE E INTEGRAÇÕES',
+      desc: 'Gemini, Hermes, Letta, Gmail e sistema',
+      icon: Brain,
     },
   ];
 
@@ -171,7 +179,7 @@ export const InfinityLauncher: React.FC<InfinityLauncherProps> = ({
             </div>
           </div>
 
-          {/* 6 Actions List */}
+          {/* Actions List */}
           <div className="p-2 space-y-1">
             {shortcuts.map((item) => {
               const Icon = item.icon;
