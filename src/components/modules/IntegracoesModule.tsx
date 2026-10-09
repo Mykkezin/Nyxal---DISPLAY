@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Activity, Bot, CheckCircle2, Clock, Mail, RefreshCw, Server, ShieldCheck, Volume2, WifiOff } from 'lucide-react';
+import { Activity, Bot, CalendarDays, CheckCircle2, Clock, Contact, FolderOpen, Mail, RefreshCw, Server, ShieldCheck, Volume2, WifiOff } from 'lucide-react';
 import { nyxosApi } from '../../services/nyxosApi';
 
 type Data = Record<string, unknown>;
@@ -35,6 +35,10 @@ export const IntegracoesModule: React.FC = () => {
   const [context, setContext] = useState<Data | null>(null);
   const [gmailStatus, setGmailStatus] = useState<Data | null>(null);
   const [messages, setMessages] = useState<Data[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<Data[]>([]);
+  const [contacts, setContacts] = useState<Data[]>([]);
+  const [driveFiles, setDriveFiles] = useState<Data[]>([]);
+  const [emailQuery, setEmailQuery] = useState('is:unread newer_than:7d');
   const [selectedMessage, setSelectedMessage] = useState<Data | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -65,16 +69,36 @@ export const IntegracoesModule: React.FC = () => {
     if (gmailResult.status === 'fulfilled') {
       setGmailStatus(gmailResult.value);
       if (gmailResult.value.estado === 'configurado') {
-        try {
-          const list = await nyxosApi.getGmailMessages();
-          const rows = Array.isArray(list.mensagens) ? list.mensagens.filter((item): item is Data => Boolean(item) && typeof item === 'object') : [];
+        const [mailResult, calendarResult, contactsResult, driveResult] = await Promise.allSettled([
+          nyxosApi.getGmailMessages(emailQuery),
+          nyxosApi.getGoogleCalendarEvents(12, 14),
+          nyxosApi.getGoogleContacts(25),
+          nyxosApi.getGoogleDriveFiles(25),
+        ]);
+        if (mailResult.status === 'fulfilled') {
+          const rows = Array.isArray(mailResult.value.mensagens) ? mailResult.value.mensagens.filter((item): item is Data => Boolean(item) && typeof item === 'object') : [];
           setMessages(rows);
-        } catch (reason) {
+        } else {
           setMessages([]);
-          setGmailError(reason instanceof Error ? reason.message : 'Não foi possível ler mensagens.');
+          setGmailError(mailResult.reason instanceof Error ? mailResult.reason.message : 'Não foi possível consultar o Gmail.');
         }
+        if (calendarResult.status === 'fulfilled') {
+          const rows = Array.isArray(calendarResult.value.eventos) ? calendarResult.value.eventos.filter((item): item is Data => Boolean(item) && typeof item === 'object') : [];
+          setCalendarEvents(rows);
+        } else setCalendarEvents([]);
+        if (contactsResult.status === 'fulfilled') {
+          const rows = Array.isArray(contactsResult.value.contatos) ? contactsResult.value.contatos.filter((item): item is Data => Boolean(item) && typeof item === 'object') : [];
+          setContacts(rows);
+        } else setContacts([]);
+        if (driveResult.status === 'fulfilled') {
+          const rows = Array.isArray(driveResult.value.arquivos) ? driveResult.value.arquivos.filter((item): item is Data => Boolean(item) && typeof item === 'object') : [];
+          setDriveFiles(rows);
+        } else setDriveFiles([]);
       } else {
         setMessages([]);
+        setCalendarEvents([]);
+        setContacts([]);
+        setDriveFiles([]);
       }
     } else {
       setGmailStatus(null);
@@ -82,7 +106,7 @@ export const IntegracoesModule: React.FC = () => {
       setGmailError(gmailResult.reason instanceof Error ? gmailResult.reason.message : 'Status do Gmail indisponível.');
     }
     setLoading(false);
-  }, []);
+  }, [emailQuery]);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
@@ -183,11 +207,15 @@ export const IntegracoesModule: React.FC = () => {
 
       <section className="rounded-lg border border-white/10 bg-black/20 p-4">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><Mail className="h-4 w-4 text-violet-400" /> Gmail · OAuth</div>
-          <StatePill ready={gmailConfigured}>{gmailConfigured ? 'CONFIGURADO' : 'PENDENTE'}</StatePill>
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><Mail className="h-4 w-4 text-violet-400" /> Google Workspace · OAuth</div>
+          <StatePill ready={gmailConfigured}>{gmailConfigured ? 'AUTORIZADO · LEITURA' : 'PENDENTE'}</StatePill>
         </div>
         <p className="mb-2 text-[11px] text-zinc-400">{gmailConfigured ? 'Acesso somente leitura. Nenhum e-mail será enviado, apagado ou alterado.' : textValue(gmailStatus?.proximo_passo, 'Autorize o Gmail seguindo docs/NYXAL_AGENT_STACK.md.')}</p>
         {gmailError && <div className="mb-2 rounded border border-amber-500/20 bg-amber-500/5 p-2 text-[10px] text-amber-300">{gmailError}</div>}
+        <div className="mb-2 flex gap-2">
+          <input value={emailQuery} onChange={(event) => setEmailQuery(event.target.value)} aria-label="Consulta Gmail" className="min-w-0 flex-1 rounded border border-white/10 bg-black/30 px-3 py-2 text-[11px] text-zinc-200 outline-none focus:border-violet-500/40" placeholder="Pesquisa Gmail: is:unread newer_than:7d" />
+          <button onClick={() => void refresh()} disabled={loading || !gmailConfigured} className="rounded border border-white/10 px-3 py-2 text-[10px] text-zinc-300 hover:bg-white/5 disabled:opacity-40">Buscar</button>
+        </div>
         <div className="space-y-2">
           {messages.map((message, index) => (
             <button key={textValue(message.id, String(index))} onClick={() => {
@@ -210,6 +238,51 @@ export const IntegracoesModule: React.FC = () => {
             <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words text-[11px] leading-relaxed text-zinc-300">{textValue(selectedMessage.corpo_texto, 'Corpo vazio ou formato não suportado.')}</pre>
           </div>
         )}
+      </section>
+
+      <section className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><CalendarDays className="h-4 w-4 text-violet-400" /> Agenda · próximos 14 dias</div>
+        <div className="space-y-2">
+          {calendarEvents.map((event, index) => (
+            <div key={textValue(event.id, String(index))} className="rounded border border-white/5 bg-white/[0.02] p-3">
+              <div className="text-xs font-medium text-zinc-200">{textValue(event.titulo, '(sem título)')}</div>
+              <div className="mt-1 text-[10px] text-zinc-500">{textValue(event.inicio)} {event.fim ? '→ ' + textValue(event.fim, '') : ''}</div>
+              {typeof event.local === 'string' && <div className="mt-1 text-[10px] text-zinc-500">{event.local}</div>}
+            </div>
+          ))}
+          {gmailConfigured && calendarEvents.length === 0 && <div className="text-[11px] text-zinc-500">Nenhum evento retornado na janela consultada.</div>}
+        </div>
+      </section>
+
+      <section className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><Contact className="h-4 w-4 text-violet-400" /> Contatos Google</div>
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+          {contacts.slice(0, 25).map((contact, index) => (
+            <div key={textValue(contact.id, String(index))} className="rounded border border-white/5 bg-white/[0.02] p-3">
+              <div className="text-xs text-zinc-200">{textValue(contact.nome, '(sem nome)')}</div>
+              {Array.isArray(contact.emails) && contact.emails.slice(0, 3).map((email, eIndex) => <div key={eIndex} className="mt-1 break-all text-[10px] text-zinc-400">{String(email)}</div>)}
+              {Array.isArray(contact.telefones) && contact.telefones.slice(0, 2).map((phone, pIndex) => <div key={pIndex} className="mt-1 text-[10px] text-zinc-500">{String(phone)}</div>)}
+            </div>
+          ))}
+          {gmailConfigured && contacts.length === 0 && <div className="text-[11px] text-zinc-500">Nenhum contato retornado.</div>}
+        </div>
+      </section>
+
+      <section className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+        <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><FolderOpen className="h-4 w-4 text-violet-400" /> Google Drive · metadados</div>
+        <div className="space-y-1">
+          {driveFiles.map((file, index) => (
+            <div key={textValue(file.id, String(index))} className="flex items-center justify-between gap-3 rounded bg-white/[0.02] px-3 py-2">
+              <div className="min-w-0">
+                <div className="truncate text-xs text-zinc-200">{textValue(file.nome, '(sem nome)')}</div>
+                <div className="mt-1 text-[10px] text-zinc-500">{textValue(file.tipo)} · {textValue(file.modificado_em, 'data desconhecida')}</div>
+              </div>
+              {typeof file.link === 'string' && file.link.startsWith('https://') && <a href={file.link} target="_blank" rel="noreferrer" className="shrink-0 text-[10px] text-violet-300 hover:text-violet-200">Abrir</a>}
+            </div>
+          ))}
+          {gmailConfigured && driveFiles.length === 0 && <div className="text-[11px] text-zinc-500">Nenhum arquivo retornado.</div>}
+        </div>
+        <div className="mt-3 text-[10px] text-zinc-600">O Display lê metadados do Drive; não baixa nem modifica os arquivos.</div>
       </section>
       <div className="mt-3 flex items-center gap-2 text-[10px] text-zinc-600"><Volume2 className="h-3 w-3" /> Voz feminina local: Kokoro pf_dora · <WifiOff className="h-3 w-3" /> WhatsApp depende de pareamento no Hermes.</div>
     </div>
