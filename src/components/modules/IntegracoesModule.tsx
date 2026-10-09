@@ -145,7 +145,9 @@ export const IntegracoesModule: React.FC = () => {
       }).join(' / ')
     : '—';
   const units = objectValue(observability.servicos_usuario);
+  const systemUnits = objectValue(observability.servicos_sistema);
   const unitRows = Array.isArray(units.unidades) ? units.unidades.filter((item: unknown): item is Data => Boolean(item) && typeof item === 'object') : [];
+  const systemUnitRows = Array.isArray(systemUnits.unidades) ? systemUnits.unidades.filter((item: unknown): item is Data => Boolean(item) && typeof item === 'object') : [];
   const processRows = Array.isArray(processes.top_cpu) ? processes.top_cpu.filter((item: unknown): item is Data => Boolean(item) && typeof item === 'object') : [];
   const agentProvider = textValue(agentStatus?.provedor_resolvido, 'desconhecido');
   const gmailConfigured = gmailStatus?.estado === 'configurado';
@@ -215,7 +217,17 @@ export const IntegracoesModule: React.FC = () => {
               <span className={unit.active === 'active' ? 'shrink-0 text-emerald-300' : 'shrink-0 text-zinc-500'}>{textValue(unit.active)} / {textValue(unit.sub)}</span>
             </div>
           ))}
-          {unitRows.length === 0 && <div className="rounded bg-white/[0.02] p-3 text-[11px] text-zinc-500">Serviços não observados. Atualize para tentar novamente.</div>}
+          {unitRows.length === 0 && <div className="rounded bg-white/[0.02] p-3 text-[11px] text-zinc-500">Serviços do usuário não observados. Atualize para tentar novamente.</div>}
+        </div>
+        <div className="mb-2 mt-4 flex items-center gap-2 text-[11px] text-zinc-400"><Server className="h-3.5 w-3.5" /> Serviços do sistema</div>
+        <div className="max-h-36 space-y-1 overflow-y-auto">
+          {systemUnitRows.slice(0, 20).map((unit, index) => (
+            <div key={textValue(unit.unidade, String(index))} className="flex items-center justify-between gap-3 rounded bg-white/[0.02] px-2.5 py-1.5 text-[10px]">
+              <span className="truncate font-mono text-zinc-300">{textValue(unit.unidade)}</span>
+              <span className={unit.active === 'active' ? 'shrink-0 text-emerald-300' : 'shrink-0 text-zinc-500'}>{textValue(unit.active)} / {textValue(unit.sub)}</span>
+            </div>
+          ))}
+          {systemUnitRows.length === 0 && <div className="rounded bg-white/[0.02] p-3 text-[11px] text-zinc-500">Serviços do sistema não observados nesta sessão.</div>}
         </div>
         <div className="mt-2 flex items-center gap-2 text-[10px] text-zinc-600"><ShieldCheck className="h-3 w-3" /> O módulo não executa comandos nem altera serviços.</div>
 
