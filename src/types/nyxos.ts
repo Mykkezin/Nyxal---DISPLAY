@@ -65,7 +65,9 @@ export type ModuleWindowId =
   | 'gateway'
   | 'terminal'
   | 'arquivos'
-  | 'nyxal_chat';
+  | 'nyxal_chat'
+  | 'integracoes'
+  | 'design';
 
 export interface WindowState {
   id: ModuleWindowId;
