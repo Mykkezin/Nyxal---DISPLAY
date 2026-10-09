@@ -97,13 +97,13 @@ export const Dock: React.FC<DockProps> = ({
   ];
 
   return (
-    <div className="fixed bottom-2.5 left-1/2 -translate-x-1/2 z-30 select-none">
-      <div className="flex items-center gap-1.5 rounded-2xl border border-white/10 bg-[#07080b]/75 px-3 py-1.5 backdrop-blur-2xl shadow-2xl transition-all duration-300 hover:border-white/20 hover:bg-[#07080b]/90">
+    <div className="nyxos-dock fixed bottom-2.5 left-1/2 -translate-x-1/2 z-30 select-none">
+      <div className="nyxos-dock-surface flex items-center gap-1.5 rounded-2xl border border-white/10 bg-[#07080b]/75 px-3 py-1.5 backdrop-blur-2xl shadow-2xl transition-all duration-300 hover:border-white/20 hover:bg-[#07080b]/90">
         {dockItems.map((item) => (
           <button
             key={item.id}
             onClick={item.onClick}
-            className="group relative flex h-10 w-10 flex-col items-center justify-center rounded-xl p-1 text-zinc-400 transition-all duration-200 hover:-translate-y-1 hover:bg-white/5 active:translate-y-0"
+            className="nyxos-dock-item group relative flex h-10 w-10 flex-col items-center justify-center rounded-xl p-1 text-zinc-400 transition-all duration-200 hover:-translate-y-1 hover:bg-white/5 active:translate-y-0"
             title={item.label}
           >
             {item.icon}
