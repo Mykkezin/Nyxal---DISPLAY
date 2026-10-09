@@ -31,7 +31,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-30 flex h-9 items-center justify-between border-b border-white/5 bg-[#07080b]/80 px-4 text-xs select-none backdrop-blur-xl">
+    <header className="nyxos-topbar fixed top-0 left-0 right-0 z-30 flex h-9 items-center justify-between border-b border-white/5 bg-[#07080b]/80 px-4 text-xs select-none backdrop-blur-xl">
       {/* Left: OS Brand & Nyxal fast trigger */}
       <div className="flex items-center gap-3">
         <button
