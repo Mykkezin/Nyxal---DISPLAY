@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Activity, Bot, CalendarDays, CheckCircle2, Clock, Contact, FolderOpen, Mail, RefreshCw, Server, ShieldCheck, Volume2, WifiOff } from 'lucide-react';
 import { nyxosApi } from '../../services/nyxosApi';
 
@@ -39,10 +39,13 @@ export const IntegracoesModule: React.FC = () => {
   const [contacts, setContacts] = useState<Data[]>([]);
   const [driveFiles, setDriveFiles] = useState<Data[]>([]);
   const [emailQuery, setEmailQuery] = useState('is:unread newer_than:7d');
+  const emailQueryRef = useRef(emailQuery);
   const [selectedMessage, setSelectedMessage] = useState<Data | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [gmailError, setGmailError] = useState('');
+
+  useEffect(() => { emailQueryRef.current = emailQuery; }, [emailQuery]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -70,7 +73,7 @@ export const IntegracoesModule: React.FC = () => {
       setGmailStatus(gmailResult.value);
       if (gmailResult.value.estado === 'configurado') {
         const [mailResult, calendarResult, contactsResult, driveResult] = await Promise.allSettled([
-          nyxosApi.getGmailMessages(emailQuery),
+          nyxosApi.getGmailMessages(emailQueryRef.current),
           nyxosApi.getGoogleCalendarEvents(12, 14),
           nyxosApi.getGoogleContacts(25),
           nyxosApi.getGoogleDriveFiles(25),
@@ -103,10 +106,13 @@ export const IntegracoesModule: React.FC = () => {
     } else {
       setGmailStatus(null);
       setMessages([]);
-      setGmailError(gmailResult.reason instanceof Error ? gmailResult.reason.message : 'Status do Gmail indisponível.');
+      setCalendarEvents([]);
+      setContacts([]);
+      setDriveFiles([]);
+      setGmailError(gmailResult.reason instanceof Error ? gmailResult.reason.message : 'Status do Google Workspace indisponível.');
     }
     setLoading(false);
-  }, [emailQuery]);
+  }, []);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
