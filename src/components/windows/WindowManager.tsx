@@ -93,7 +93,7 @@ export const WindowManager: React.FC<WindowManagerProps> = ({
               key={win.id}
               style={style}
               onMouseDown={() => onFocus(win.id)}
-              className={`flex flex-col rounded-lg border backdrop-blur-2xl shadow-2xl overflow-hidden transition-all duration-150 ${
+              className={`nyxos-window flex flex-col rounded-lg border backdrop-blur-2xl shadow-2xl overflow-hidden transition-all duration-150 ${
                 isActive
                   ? 'border-white/15 bg-[#0b0c14]/95 shadow-[0_12px_40px_rgba(0,0,0,0.8)] ring-1 ring-violet-500/20'
                   : 'border-white/5 bg-[#0b0c14]/85 shadow-[0_8px_24px_rgba(0,0,0,0.6)] opacity-95'
@@ -102,7 +102,7 @@ export const WindowManager: React.FC<WindowManagerProps> = ({
               {/* Window Header */}
               <div
                 onMouseDown={(e) => handleHeaderMouseDown(e, win)}
-                className={`flex h-9 shrink-0 items-center justify-between border-b px-3.5 select-none ${
+                className={`nyxos-window-header flex h-9 shrink-0 items-center justify-between border-b px-3.5 select-none ${
                   isActive
                     ? 'border-white/10 bg-black/40 text-zinc-100 cursor-grab active:cursor-grabbing'
                     : 'border-white/5 bg-black/20 text-zinc-400 cursor-grab'

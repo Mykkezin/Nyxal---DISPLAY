@@ -17,10 +17,10 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-40 bg-transparent" onClick={onClose}>
+    <div className="nyxos-control-overlay fixed inset-0 z-40 bg-transparent" onClick={onClose}>
       <div
         onClick={(e) => e.stopPropagation()}
-        className="fixed top-11 right-4 w-80 rounded-xl border border-white/10 bg-[#0d0e16]/95 backdrop-blur-2xl shadow-2xl p-5 text-zinc-100 select-none animate-in fade-in slide-in-from-top-2 duration-150"
+        className="nyxos-control-panel fixed top-11 right-4 w-80 rounded-xl border border-white/10 bg-[#0d0e16]/95 backdrop-blur-2xl shadow-2xl p-5 text-zinc-100 select-none animate-in fade-in slide-in-from-top-2 duration-150"
       >
         <div className="flex items-center justify-between border-b border-white/5 pb-3">
           <div className="flex items-center gap-2">

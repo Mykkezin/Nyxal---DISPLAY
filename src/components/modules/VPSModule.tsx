@@ -32,7 +32,8 @@ export const VPSModule: React.FC<VPSModuleProps> = ({ onNotify }) => {
     hostThreads: number;
     hostRamTotalGb: number;
     hostRamUsedGb: number;
-    imagePath: string;
+    imagePath: string | null;
+    cloudImageReady: boolean | null;
   } | null>(null);
   const [selectedVm, setSelectedVm] = useState<VpsInstance | null>(null);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);

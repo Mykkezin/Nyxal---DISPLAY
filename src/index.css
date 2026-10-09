@@ -2,8 +2,29 @@
 
 @layer base {
   :root {
-    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+    color-scheme: dark;
+    --nx-bg: #02050d;
+    --nx-panel: rgba(5, 15, 30, 0.88);
+    --nx-panel-strong: rgba(4, 10, 22, 0.96);
+    --nx-cyan: #00f2fe;
+    --nx-cyan-soft: #73eaff;
+    --nx-blue: #4facfe;
+    --nx-violet: #9b6dff;
+    --nx-magenta: #d45cff;
+    --nx-green: #55ffd2;
+    --nx-amber: #ffca75;
+    --nx-line: rgba(0, 242, 254, 0.23);
+    --nx-muted: #7892aa;
+    --nx-font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --nx-font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+    --font-sans: var(--nx-font-sans);
+    --font-mono: var(--nx-font-mono);
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
   }
 
   html,
@@ -11,27 +32,723 @@
   #root {
     height: 100%;
     width: 100%;
+    min-height: 100%;
     overflow: hidden;
-    background-color: #07080b;
-    color: #e2e8f0;
-    font-family: var(--font-sans);
-    user-select: none;
+    background: var(--nx-bg);
+    color: #e9f7ff;
+    font-family: var(--nx-font-sans);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
-  /* Custom discreet scrollbars */
+  body {
+    margin: 0;
+  }
+
+  ::selection {
+    color: #03121e;
+    background: rgba(0, 242, 254, 0.68);
+  }
+
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
+
   ::-webkit-scrollbar-track {
-    background: transparent;
+    background: rgba(0, 10, 20, 0.25);
   }
+
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 242, 254, 0.12);
     border-radius: 9999px;
+    background: rgba(0, 242, 254, 0.24);
   }
+
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 242, 254, 0.48);
+  }
+}
+
+@keyframes nx-orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes nx-orbit-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes nx-breathe {
+  0%, 100% {
+    opacity: 0.72;
+    filter: drop-shadow(0 0 14px rgba(0, 242, 254, 0.24));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 28px rgba(0, 242, 254, 0.52));
+  }
+}
+
+@keyframes nx-particle {
+  0%, 100% { transform: scale(0.84); opacity: 0.72; }
+  50% { transform: scale(1.12); opacity: 1; }
+}
+
+@keyframes nx-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes nx-panel-glow {
+  0%, 100% { box-shadow: 0 0 18px rgba(0, 242, 254, 0.035), inset 0 0 18px rgba(139, 92, 246, 0.035); }
+  50% { box-shadow: 0 0 28px rgba(0, 242, 254, 0.085), inset 0 0 22px rgba(139, 92, 246, 0.06); }
+}
+
+/* Main NyxOS canvas */
+.nyxos-shell {
+  isolation: isolate;
+  background: var(--nx-bg) !important;
+}
+
+.nyxos-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 43%, rgba(0, 242, 254, 0.105), transparent 31%),
+    radial-gradient(ellipse at 78% 18%, rgba(155, 109, 255, 0.13), transparent 30%),
+    radial-gradient(ellipse at 14% 78%, rgba(0, 164, 255, 0.075), transparent 27%),
+    linear-gradient(rgba(78, 181, 226, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(78, 181, 226, 0.045) 1px, transparent 1px);
+  background-size: auto, auto, auto, 68px 68px, 68px 68px;
+  mix-blend-mode: screen;
+  opacity: 0.92;
+}
+
+.nyxos-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.024) 0,
+    rgba(255, 255, 255, 0.024) 1px,
+    transparent 2px,
+    transparent 5px
+  );
+  opacity: 0.32;
+}
+
+.nyxos-shell > * {
+  isolation: auto;
+}
+
+.nyxos-workspace {
+  text-shadow: 0 0 18px rgba(0, 242, 254, 0.035);
+}
+
+.nyxos-topbar {
+  border-bottom: 1px solid rgba(0, 242, 254, 0.22) !important;
+  background: linear-gradient(90deg, rgba(2, 9, 20, 0.94), rgba(7, 14, 32, 0.88), rgba(2, 9, 20, 0.94)) !important;
+  box-shadow: 0 8px 35px rgba(0, 0, 0, 0.24), 0 1px 0 rgba(0, 242, 254, 0.04);
+  backdrop-filter: blur(24px) saturate(1.5);
+}
+
+.nyxos-topbar::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.72), rgba(155, 109, 255, 0.72), transparent);
+  opacity: 0.65;
+}
+
+.nyxos-topbar button:focus-visible,
+.nyxos-shell button:focus-visible,
+.nyxos-shell input:focus-visible,
+.nyxos-shell textarea:focus-visible,
+.nyxos-shell select:focus-visible {
+  outline: 2px solid rgba(0, 242, 254, 0.82);
+  outline-offset: 3px;
+}
+
+.nyxos-shell button {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+}
+
+.nyxos-shell button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+/* Reusable holographic glass surface used across modules and overlays */
+.nyxos-shell [class*="bg-[#0d0e16]"],
+.nyxos-shell [class*="bg-[#0b0c14]"] {
+  border-color: rgba(0, 242, 254, 0.25) !important;
+  background: linear-gradient(140deg, rgba(5, 18, 34, 0.97), rgba(14, 9, 35, 0.94)) !important;
+  box-shadow:
+    0 22px 70px rgba(0, 0, 0, 0.62),
+    0 0 26px rgba(0, 242, 254, 0.055),
+    inset 0 0 24px rgba(0, 242, 254, 0.035);
+  backdrop-filter: blur(22px) saturate(1.4);
+}
+
+.nyxos-shell [class*="border-white/5"],
+.nyxos-shell [class*="border-white/10"] {
+  border-color: rgba(99, 207, 238, 0.15) !important;
+}
+
+.nyxos-shell [class*="bg-black/40"],
+.nyxos-shell [class*="bg-black/30"],
+.nyxos-shell [class*="bg-black/20"] {
+  background-color: rgba(1, 9, 21, 0.52) !important;
+}
+
+.nyxos-shell input,
+.nyxos-shell textarea,
+.nyxos-shell select {
+  color: #e7f7ff;
+  caret-color: var(--nx-cyan);
+}
+
+.nyxos-shell input::placeholder,
+.nyxos-shell textarea::placeholder {
+  color: rgba(132, 163, 185, 0.72);
+}
+
+/* Nyxal core: central holographic presence */
+.nyxal-presence {
+  position: relative;
+  z-index: 1;
+}
+
+.nyxal-orb {
+  width: 184px;
+  height: 184px;
+  border-radius: 9999px;
+  isolation: isolate;
+}
+
+.nyxal-orb:focus-visible {
+  outline-offset: 4px;
+}
+
+.nyxal-orb-aura {
+  width: 214px !important;
+  height: 214px !important;
+  background: radial-gradient(circle, rgba(0, 242, 254, 0.17), rgba(155, 109, 255, 0.10) 42%, transparent 72%) !important;
+  filter: blur(13px);
+  animation: nx-breathe 5.5s ease-in-out infinite;
+}
+
+.nyxal-orb-ring {
+  width: 164px !important;
+  height: 164px !important;
+  border-color: rgba(0, 242, 254, 0.5) !important;
+  border-top-color: var(--nx-cyan) !important;
+  border-right-color: rgba(155, 109, 255, 0.78) !important;
+  box-shadow: 0 0 22px rgba(0, 242, 254, 0.095), inset 0 0 22px rgba(155, 109, 255, 0.035);
+  animation: nx-orbit 24s linear infinite;
+}
+
+.nyxal-orb-ring-inner {
+  width: 118px !important;
+  height: 118px !important;
+  border-color: rgba(155, 109, 255, 0.4) !important;
+  border-left-color: rgba(0, 242, 254, 0.65) !important;
+  border-bottom-color: rgba(0, 242, 254, 0.16) !important;
+  box-shadow: 0 0 19px rgba(155, 109, 255, 0.075);
+  animation: nx-orbit-reverse 32s linear infinite;
+}
+
+.nyxal-orb-core {
+  width: 76px !important;
+  height: 76px !important;
+  border-color: rgba(0, 242, 254, 0.62) !important;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(0, 242, 254, 0.20), transparent 45%),
+    radial-gradient(circle at 70% 78%, rgba(155, 109, 255, 0.28), transparent 48%),
+    linear-gradient(145deg, rgba(7, 23, 44, 0.96), rgba(9, 8, 28, 0.98)) !important;
+  box-shadow:
+    0 0 34px rgba(0, 242, 254, 0.22),
+    0 0 72px rgba(155, 109, 255, 0.13),
+    inset 0 0 26px rgba(0, 242, 254, 0.13);
+  animation: nx-breathe 4.2s ease-in-out infinite;
+}
+
+.nyxal-orb-particle {
+  width: 13px !important;
+  height: 13px !important;
+  background: var(--nx-cyan-soft) !important;
+  box-shadow: 0 0 9px var(--nx-cyan), 0 0 22px rgba(0, 242, 254, 0.9), 0 0 34px rgba(155, 109, 255, 0.34) !important;
+  animation: nx-particle 2.6s ease-in-out infinite;
+}
+
+.nyxal-identity {
+  position: relative;
+  z-index: 1;
+}
+
+.nyxal-identity p {
+  max-width: min(82vw, 520px);
+  color: rgba(218, 241, 255, 0.88);
+  line-height: 1.65;
+}
+
+.nyxos-system-status {
+  border: 1px solid rgba(0, 242, 254, 0.12);
+  border-radius: 9999px;
+  padding: 7px 12px;
+  background: rgba(3, 12, 25, 0.52);
+  box-shadow: inset 0 0 16px rgba(0, 242, 254, 0.035);
+  letter-spacing: 0.14em;
+}
+
+/* Infinity: functional dock and launcher, with no fake system telemetry */
+.nyxos-infinity-trigger {
+  border-color: rgba(0, 242, 254, 0.32) !important;
+  background: linear-gradient(100deg, rgba(2, 15, 28, 0.9), rgba(18, 9, 39, 0.86)) !important;
+  box-shadow: 0 0 24px rgba(0, 242, 254, 0.065), inset 0 0 18px rgba(0, 242, 254, 0.04);
+}
+
+.nyxos-infinity-trigger:hover {
+  border-color: rgba(0, 242, 254, 0.7) !important;
+  box-shadow: 0 0 34px rgba(0, 242, 254, 0.16), 0 0 48px rgba(155, 109, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.nyxos-infinity-window {
+  border-color: rgba(0, 242, 254, 0.28) !important;
+  background: linear-gradient(145deg, rgba(4, 16, 32, 0.98), rgba(14, 8, 32, 0.96)) !important;
+  box-shadow: 0 28px 85px rgba(0, 0, 0, 0.65), 0 0 26px rgba(0, 242, 254, 0.07), inset 0 0 24px rgba(0, 242, 254, 0.025);
+}
+
+.nyxos-infinity-header {
+  border-bottom-color: rgba(0, 242, 254, 0.17) !important;
+  background: linear-gradient(90deg, rgba(0, 242, 254, 0.055), rgba(155, 109, 255, 0.08), transparent) !important;
+}
+
+.nyxos-dock-surface {
+  border-color: rgba(0, 242, 254, 0.28) !important;
+  background: linear-gradient(110deg, rgba(3, 12, 25, 0.86), rgba(11, 9, 29, 0.9)) !important;
+  box-shadow:
+    0 16px 45px rgba(0, 0, 0, 0.48),
+    0 0 24px rgba(0, 242, 254, 0.075),
+    inset 0 0 22px rgba(0, 242, 254, 0.045);
+  backdrop-filter: blur(26px) saturate(1.5);
+}
+
+.nyxos-dock-surface:hover {
+  border-color: rgba(0, 242, 254, 0.45) !important;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 242, 254, 0.1);
+}
+
+.nyxos-dock-item {
+  border: 1px solid transparent;
+}
+
+.nyxos-dock-item:hover {
+  border-color: rgba(0, 242, 254, 0.22);
+  background: linear-gradient(145deg, rgba(0, 242, 254, 0.09), rgba(155, 109, 255, 0.1)) !important;
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.08);
+}
+
+/* Desktop windows, control center and conversation */
+.nyxos-window {
+  border-color: rgba(0, 242, 254, 0.24) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(145deg, rgba(4, 15, 30, 0.97), rgba(11, 8, 28, 0.96)) !important;
+  box-shadow: 0 22px 72px rgba(0, 0, 0, 0.62), 0 0 30px rgba(0, 242, 254, 0.055);
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 104px);
+}
+
+.nyxos-window-header {
+  border-bottom-color: rgba(0, 242, 254, 0.17) !important;
+  background: linear-gradient(90deg, rgba(0, 242, 254, 0.055), rgba(155, 109, 255, 0.06), rgba(0, 0, 0, 0.18)) !important;
+}
+
+.nyxos-window-header button:hover {
+  border-color: rgba(0, 242, 254, 0.25);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.1);
+}
+
+.nyxos-control-panel,
+.nyxal-command-panel {
+  border-color: rgba(0, 242, 254, 0.3) !important;
+  background: linear-gradient(145deg, rgba(4, 16, 33, 0.98), rgba(13, 8, 31, 0.97)) !important;
+  box-shadow: 0 26px 85px rgba(0, 0, 0, 0.66), 0 0 34px rgba(0, 242, 254, 0.085), inset 0 0 26px rgba(0, 242, 254, 0.035);
+  backdrop-filter: blur(25px) saturate(1.4);
+}
+
+.nyxos-control-overlay,
+.nyxal-command-overlay {
+  background: rgba(0, 4, 13, 0.74) !important;
+  backdrop-filter: blur(12px) saturate(0.8);
+}
+
+.nyxal-command-panel {
+  overflow: hidden;
+}
+
+.nyxal-command-panel form {
+  border-top-color: rgba(0, 242, 254, 0.16) !important;
+  background: rgba(2, 9, 21, 0.65);
+}
+
+.nyxal-command-panel input {
+  min-width: 0;
+}
+
+.nyxos-shell [class*="text-violet-"] {
+  text-shadow: 0 0 16px rgba(155, 109, 255, 0.11);
+}
+
+
+/* Side telemetry panels: real API values only, with explicit N/D for missing sensors. */
+.nyxos-hud-panel {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  width: clamp(190px, 18vw, 238px);
+  padding: 14px;
+  overflow: hidden;
+  transform: translateY(-50%);
+  border: 1px solid rgba(0, 242, 254, 0.27);
+  border-radius: 12px;
+  background:
+    linear-gradient(145deg, rgba(3, 18, 34, 0.91), rgba(12, 8, 31, 0.88)),
+    rgba(3, 12, 24, 0.88);
+  box-shadow:
+    0 18px 52px rgba(0, 0, 0, 0.43),
+    0 0 26px rgba(0, 242, 254, 0.055),
+    inset 0 0 22px rgba(0, 242, 254, 0.035);
+  backdrop-filter: blur(20px) saturate(1.45);
+  -webkit-backdrop-filter: blur(20px) saturate(1.45);
+  font-family: var(--nx-font-mono);
+}
+
+.nyxos-hud-panel::before,
+.nyxos-hud-panel::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.nyxos-hud-panel::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid rgba(0, 242, 254, 0.82);
+  border-left: 2px solid rgba(0, 242, 254, 0.82);
+  border-top-left-radius: 12px;
+}
+
+.nyxos-hud-panel::after {
+  right: -1px;
+  bottom: -1px;
+  border-right: 2px solid rgba(155, 109, 255, 0.8);
+  border-bottom: 2px solid rgba(155, 109, 255, 0.8);
+  border-bottom-right-radius: 12px;
+}
+
+.nyxos-hud-system { left: 24px; }
+.nyxos-hud-network { right: 24px; }
+
+.nyxos-hud-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid rgba(0, 242, 254, 0.19);
+}
+
+.nyxos-hud-panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: rgba(223, 247, 255, 0.94);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+}
+
+.nyxos-hud-panel-heading svg {
+  color: var(--nx-cyan);
+  filter: drop-shadow(0 0 7px rgba(0, 242, 254, 0.43));
+}
+
+.nyxos-hud-live-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  color: #91aabe;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.nyxos-hud-status-dot,
+.nyxos-system-status span:first-child {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #7b8da1;
+}
+
+.nyxos-hud-status-online .nyxos-hud-status-dot,
+.nyxos-system-status-online span:first-child {
+  background: var(--nx-green);
+  box-shadow: 0 0 9px rgba(85, 255, 210, 0.72);
+}
+
+.nyxos-hud-status-offline .nyxos-hud-status-dot,
+.nyxos-system-status-offline span:first-child {
+  background: #ff6b85;
+  box-shadow: 0 0 9px rgba(255, 107, 133, 0.55);
+}
+
+.nyxos-hud-status-checking .nyxos-hud-status-dot,
+.nyxos-system-status-connecting span:first-child {
+  background: var(--nx-amber);
+  box-shadow: 0 0 9px rgba(255, 202, 117, 0.48);
+  animation: nx-particle 1.6s ease-in-out infinite;
+}
+
+.nyxos-hud-panel-subtitle {
+  padding: 10px 0 8px;
+  color: rgba(120, 146, 170, 0.9);
+  font-size: 8px;
+  letter-spacing: 0.11em;
+}
+
+.nyxos-hud-metrics-list,
+.nyxos-hud-network-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nyxos-hud-metric {
+  min-width: 0;
+}
+
+.nyxos-hud-metric-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.nyxos-hud-metric-icon,
+.nyxos-hud-network-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.nyxos-hud-metric-icon svg,
+.nyxos-hud-network-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.nyxos-hud-accent-cyan { color: var(--nx-cyan); }
+.nyxos-hud-accent-violet { color: var(--nx-violet); }
+.nyxos-hud-accent-blue { color: var(--nx-blue); }
+.nyxos-hud-accent-green { color: var(--nx-green); }
+
+.nyxos-hud-metric-label {
+  min-width: 0;
+  color: rgba(151, 174, 194, 0.92);
+  font-size: 9px;
+  letter-spacing: 0.09em;
+}
+
+.nyxos-hud-metric-value {
+  margin-left: auto;
+  color: #e8f8ff;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.nyxos-hud-meter-track {
+  height: 3px;
+  margin-top: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(91, 145, 171, 0.13);
+  border-radius: 99px;
+  background: rgba(1, 8, 18, 0.78);
+}
+
+.nyxos-hud-meter-fill {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  transition: width 420ms ease-out;
+}
+
+.nyxos-hud-meter-fill-cyan {
+  background: linear-gradient(90deg, rgba(0, 166, 220, 0.8), var(--nx-cyan));
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.52);
+}
+
+.nyxos-hud-meter-fill-violet {
+  background: linear-gradient(90deg, #6745ce, var(--nx-violet));
+  box-shadow: 0 0 10px rgba(155, 109, 255, 0.45);
+}
+
+.nyxos-hud-meter-fill-blue {
+  background: linear-gradient(90deg, #2463c5, var(--nx-blue));
+  box-shadow: 0 0 10px rgba(79, 172, 254, 0.42);
+}
+
+.nyxos-hud-meter-fill-green {
+  background: linear-gradient(90deg, #159c99, var(--nx-green));
+  box-shadow: 0 0 10px rgba(85, 255, 210, 0.42);
+}
+
+.nyxos-hud-network-list { gap: 0; }
+
+.nyxos-hud-network-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(95, 151, 179, 0.12);
+}
+
+.nyxos-hud-network-row:last-child { border-bottom: 0; }
+
+.nyxos-hud-network-icon {
+  width: 25px;
+  height: 25px;
+  border: 1px solid rgba(0, 242, 254, 0.17);
+  border-radius: 7px;
+  background: rgba(0, 242, 254, 0.04);
+  color: var(--nx-cyan-soft);
+}
+
+.nyxos-hud-network-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nyxos-hud-network-detail {
+  overflow: hidden;
+  color: #e8f8ff;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.nyxos-hud-link-indicator {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.nyxos-hud-panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 13px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(0, 242, 254, 0.13);
+  color: rgba(110, 142, 165, 0.9);
+  font-size: 7px;
+  letter-spacing: 0.075em;
+}
+
+/* Keep the HUD useful on smaller laptops, then remove side panels on mobile. */
+@media (max-width: 1180px) and (min-width: 761px) {
+  .nyxos-hud-panel {
+    width: 190px;
+    padding: 11px;
+  }
+
+  .nyxos-hud-system { left: 12px; }
+  .nyxos-hud-network { right: 12px; }
+  .nyxos-hud-metrics-list { gap: 11px; }
+  .nyxos-hud-panel-subtitle { letter-spacing: 0.065em; }
+}
+
+@media (max-width: 760px) {
+  .nyxos-hud-panel { display: none; }
+}
+
+@media (max-width: 720px) {
+  .nyxal-orb {
+    transform: scale(0.83);
+    margin: -12px 0;
+  }
+
+  .nyxos-dock {
+    left: 8px !important;
+    right: 8px !important;
+    transform: none !important;
+  }
+
+  .nyxos-dock-surface {
+    justify-content: space-around;
+    gap: 2px !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
+
+  .nyxos-dock-item {
+    width: 38px !important;
+    height: 40px !important;
+  }
+
+  .nyxos-window {
+    left: 12px !important;
+    width: calc(100vw - 24px) !important;
+  }
+
+  .nyxos-control-panel {
+    right: 10px !important;
+    width: min(20rem, calc(100vw - 20px)) !important;
+  }
+
+  .nyxal-command-panel {
+    max-width: calc(100vw - 20px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
